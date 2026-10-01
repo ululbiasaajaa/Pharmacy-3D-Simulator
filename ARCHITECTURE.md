@@ -39,6 +39,9 @@ Aplikasi single-page (React + Vite). Seluruh aturan permainan ada di lapisan **d
 | `src/components/panels` | Semua antarmuka sistem (modal) |
 | `src/components/ui` | Komponen dasar (Button, Modal, Tabs, Stat, …) |
 | `src/game` | Scene 3D, pemain, NPC, objek, interaksi |
+| `src/game/visual` | Lapisan render (ART_DIRECTION.md): profil kualitas, model siang–malam, IBL & lampu, tekstur PBR prosedural, builder geometri, overlay lantai (AO & genangan cahaya), halo, sinar matahari |
+| `src/game/world` | Bangunan, fasad, eksterior, perabot (`furnitureModels`), produk dari stok (`ProductDisplay`), tata letak & tabrakan |
+| `src/game/npc` | Karakter skinned prosedural (`characterModel`, `Character`), pasien, pegawai |
 | `src/domain` | Tipe entitas & aturan permainan (tanpa React/Three) |
 | `src/data` | Data seed/konfigurasi konten |
 | `src/stores` | Store Zustand |
@@ -58,7 +61,7 @@ Aplikasi single-page (React + Vite). Seluruh aturan permainan ada di lapisan **d
 
 **Waktu**: `useGameLoop` (10 Hz) memanggil `advanceTime(state, dt)` selama apotek buka. `advanceTime` memproses langkah ≤ 1 menit permainan: kedatangan pasien, kesabaran, pegawai, pengiriman, event, dan penutupan hari pada 20.00.
 
-**Dunia 3D**: posisi NPC diturunkan dari status domain (`computeTargets`): antre → slot antrean, dilayani → meja, checkout → kasir, menunggu racikan → kursi, selesai/pergi → jalan keluar. Rak & gudang menampilkan kotak *instanced* sesuai rasio isi stok sebenarnya.
+**Dunia 3D**: posisi NPC diturunkan dari status domain (`computeTargets`): antre → slot antrean, dilayani → meja, checkout → kasir, menunggu racikan → kursi (pose duduk), selesai/pergi → jalan keluar. Animasi karakter juga mengikuti status (tidak sabar saat kesabaran < 35%, bergestur saat dilayani, pergi kesal). Rak menampilkan kemasan produk dari katalog sesuai stok per lokasi (`layoutProducts`: facing sebanding stok, dibagi ke semua tingkat). Langit, matahari, sinar etalase, dan lampu malam mengikuti jam permainan (`daylightAt`).
 
 ## Hubungan antarsistem (contoh)
 
@@ -85,6 +88,11 @@ Aplikasi single-page (React + Vite). Seluruh aturan permainan ada di lapisan **d
 | AI lewat proxy server + fallback lokal | Kunci tidak pernah di frontend; game tidak bergantung AI; keluaran divalidasi & dibatasi panjangnya; AI tidak mengubah data inti. |
 | Audio prosedural | Bebas lisensi; ditandai placeholder. |
 | `PlayScreen` lazy | Menu utama tidak memuat Three.js. |
+| Visual dibangun dari kode | Bebas lisensi & ringan diunduh: tekstur PBR prosedural (DataTexture), model perabot/arsitektur via `GeoBuilder`, karakter `SkinnedMesh` prosedural. |
+| `GeoBuilder` (gabung per material) | Detail bertambah tanpa menambah draw call: satu model = beberapa mesh saja. |
+| UV berskala meter | Satu tekstur dipakai bersama semua objek tanpa salinan; ukuran pola konsisten. |
+| Satu material karakter (warna verteks) | 1 draw call per karakter; geometri dibagi antarkarakter bergaya sama. |
+| Pencahayaan "dipanggang" + IBL sekali render | Biaya per piksel rendah: AO & genangan cahaya di tekstur lantai, environment map dirender sekali, lampu titik sedikit, shadow map di-cache. |
 
 ## Keamanan & privasi
 

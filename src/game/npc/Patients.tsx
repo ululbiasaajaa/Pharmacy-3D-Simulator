@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGame } from '@/stores/gameStore';
 import { useUi } from '@/stores/uiStore';
-import { Humanoid, type HumanoidAnim } from './Humanoid';
+import { Character, type CharacterAnim } from './Character';
+import { patientStyle } from './characterModel';
 import {
   CASHIER_SPOT,
   DOOR_INSIDE,
@@ -67,7 +68,10 @@ function computeTargets(patients: Patient[], queue: string[], employeeServing: M
 
 const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { patient: Patient; target: Target; speedMult: number }) {
   const group = useRef<THREE.Group>(null);
-  const anim = useRef<HumanoidAnim>({ moving: false, phase: 0 });
+  const anim = useRef<CharacterAnim>({ moving: false, phase: 0 });
+  const { id, gender, age, appearance } = patient;
+  const style = useMemo(() => patientStyle({ id, gender, age, appearance }), [id, gender, age, appearance]);
+  const seatBlend = useRef(0);
   const bar = useRef<THREE.Mesh>(null);
   const path = useRef<Vec2[]>([]);
   const initial = useMemo<Vec2>(() => {
@@ -99,6 +103,7 @@ const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { pa
   }, []);
 
   const ratio = patient.maxPatience ? patient.patience / patient.maxPatience : 1;
+  const status = patient.status;
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -125,7 +130,22 @@ const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { pa
       g.rotation.y = THREE.MathUtils.damp(g.rotation.y, face, 6, dt);
     }
     anim.current.moving = moving;
-    g.position.set(pos.current[0], target.seated && !moving ? -0.35 : 0, pos.current[1]);
+    anim.current.speed = 1.7 * speedMult;
+    const seated = target.seated && !moving && path.current.length === 0;
+    anim.current.mode = seated
+      ? 'sit'
+      : target.exiting
+        ? status === 'left'
+          ? 'angry'
+          : 'idle'
+        : status === 'serving'
+          ? 'talk'
+          : ratio < 0.35 && (status === 'waiting' || status === 'entering')
+            ? 'impatient'
+            : 'idle';
+    // Saat duduk, pinggul berada di atas dudukan (titik tujuan = posisi kaki di depan kursi).
+    seatBlend.current = THREE.MathUtils.damp(seatBlend.current, seated ? 1 : 0, 8, dt);
+    g.position.set(pos.current[0], 0, pos.current[1] - 0.45 * seatBlend.current);
     g.visible = !(target.exiting && path.current.length === 0);
     if (Math.abs(pos.current[0]) < 2 && Math.abs(pos.current[1] - 10) < 2.5) doorSensor.lastNear = performance.now();
     if (bar.current) {
@@ -138,7 +158,7 @@ const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { pa
   const icon = patient.category === 'prescription' || patient.category === 'refill' ? '#60a5fa' : patient.category === 'compounding' ? '#c084fc' : patient.category === 'inquiry' || patient.category === 'info' ? '#fde68a' : '#94a3b8';
   return (
     <group ref={group} name={`patient-${patient.id}`}>
-      <Humanoid appearance={patient.appearance} anim={anim} hijab={patient.gender === 'P' && patient.appearance % 3 === 0} />
+      <Character style={style} anim={anim} />
       {!target.exiting && (
         <BillboardBar>
           <mesh position={[0, 0, 0]}>
@@ -165,7 +185,7 @@ function BillboardBar({ children }: { children: React.ReactNode }) {
     if (ref.current) ref.current.quaternion.copy(camera.quaternion);
   });
   return (
-    <group ref={ref} position={[0, 2.1, 0]}>
+    <group ref={ref} position={[0, 2.02, 0]}>
       {children}
     </group>
   );

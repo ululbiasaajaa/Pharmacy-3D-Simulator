@@ -7,11 +7,11 @@
 | `npm run typecheck` | Pemeriksaan tipe TypeScript (`tsc -b`) |
 | `npm run lint` | ESLint (typescript-eslint, react-hooks) |
 | `npm test` | Vitest — unit, integrasi, komponen (jsdom), persistensi (fake-indexeddb) |
-| `npm run test:e2e` | Playwright — menjalankan dev server otomatis; perlu `npx playwright install chromium` sekali |
+| `npm run test:e2e` | Playwright — membangun build produksi lalu menjalankan `vite preview` di port 4173 (tidak bentrok dengan `npm run dev` yang sedang dipakai bermain); perlu `npx playwright install chromium` sekali. Port dapat diganti dengan `E2E_PORT` (PowerShell: `$env:E2E_PORT=4180; npm run test:e2e`). Bila server preview lama masih menyala di port itu, server tersebut dipakai ulang — matikan dulu agar build terbaru yang diuji. |
 | `npm run build` | Build produksi |
 | `npm run check` | typecheck + lint + test + build |
 
-E2E memakai WebGL perangkat lunak (SwiftShader) agar scene 3D benar-benar dirender di lingkungan tanpa GPU, dan opsi aksesibilitas **Akses cepat stasiun** agar stasiun dapat dibuka tanpa navigasi 3D (pointer lock tidak andal di browser headless).
+E2E berjalan terhadap build produksi (sama dengan yang di-deploy) agar halaman tidak di-reload oleh HMR/optimasi dependensi dev server. E2E memakai WebGL perangkat lunak (SwiftShader) agar scene 3D benar-benar dirender di lingkungan tanpa GPU, dan opsi aksesibilitas **Akses cepat stasiun** agar stasiun dapat dibuka tanpa navigasi 3D (pointer lock tidak andal di browser headless).
 
 ## Skenario pengujian
 
@@ -27,6 +27,7 @@ E2E memakai WebGL perangkat lunak (SwiftShader) agar scene 3D benar-benar dirend
 | `progression.test.ts` | Misi (baseline, klaim sekali, misi berantai), level membuka fitur, Learning Mode, pencapaian, perhitungan laba/rugi, biaya & gating peningkatan |
 | `persistence.test.ts` | Simpan→muat identik (IndexedDB), slot kosong & hapus, data rusak, migrasi v0→v1, tolak skema lebih baru, validasi pengaturan |
 | `tutorial.test.ts` | Sinyal gerak diterima walau pemain berjalan sebelum langkah "Bergerak", membuka apotek di langkah awal langsung memunculkan pasien tutorial, pasien acak ditahan hanya selama pasien tutorial masih dilayani |
+| `visual.test.ts` | Model siang–malam (arah & intensitas matahari, malam), tata letak produk dari stok (rak kosong tanpa stok, dalam batas tingkat & tidak bertumpuk, tersebar ke beberapa tingkat, lebih padat saat stok tinggi), bentuk kemasan per sediaan, cache tekstur prosedural, builder geometri (gabung per material, UV meter), gaya karakter deterministik & bobot skinning valid |
 | `ai.test.ts` | Pemeriksaan ketersediaan proxy (`/health` ok/404/offline), AI tidak dipanggil bila proxy tidak tersedia, fallback lokal saat AI mati/proxy gagal/respons salah format, sanitasi keluaran AI (tolak instruksi dosis), ulasan dari data laporan, petunjuk tutor berbasis kondisi |
 
 ### Integrasi (`src/tests/integration/gameplay.test.ts`)
@@ -48,10 +49,14 @@ Menu utama; alur UI pelayanan obat bebas → kasir → pembayaran; klik ganda to
 |---|---|
 | Type check | ✅ lulus, 0 galat |
 | Lint | ✅ lulus, 0 galat/peringatan |
-| Vitest | ✅ 84/84 lulus (11 berkas) |
+| Vitest | ✅ 94/94 lulus (12 berkas) |
 | Build produksi | ✅ berhasil |
-| Playwright E2E | ✅ 2/2 lulus (Chromium headless + SwiftShader, ±3 menit) |
+| Playwright E2E | ✅ 2/2 lulus terhadap build produksi (Chromium headless + SwiftShader, ±4,2 menit termasuk build) |
 | Smoke visual manual (tangkapan layar Playwright) | ✅ menu, scene 3D, antrean NPC, panel pelayanan/kasir/tablet, orang ketiga, eksterior |
+
+## Pengukuran performa grafis
+
+Benchmark render di GPU asli dijalankan dengan Chromium headless (`--use-angle=d3d11`) pada laptop pengembang (Intel Iris Xe), 1920×1080: scene dirender 60 kali berturut-turut lalu disinkronkan (`readPixels`) dari 5 sudut pandang tetap. Hasil sebelum/sesudah peningkatan visual ada di [ART_DIRECTION.md §11](ART_DIRECTION.md#11-hasil-pengukuran). Angka ini adalah waktu render (bukan FPS penuh) dan belum diuji di perangkat lain. SwiftShader (dipakai E2E) jauh lebih lambat dan tidak representatif untuk performa GPU.
 
 ## Batasan pengujian
 
@@ -60,4 +65,5 @@ Menu utama; alur UI pelayanan obat bebas → kasir → pembayaran; klik ganda to
 - Proxy AI hanya diuji tanpa kredensial (respons 503 & fallback lokal) dan dengan respons tiruan di unit test; panggilan nyata ke model memerlukan kredensial dan tidak dijalankan.
 - Audio prosedural tidak diuji otomatis.
 - E2E hanya di Chromium.
+- Selama peningkatan visual (2026-10-01), E2E sempat gagal karena dua hal yang sudah diperbaiki: (1) dev server Vite me-reload halaman saat menemukan dependensi baru (`RoundedBoxGeometry`, `BufferGeometryUtils`) tepat setelah game dimulai → kini dipra-bundel (`optimizeDeps.include`) dan E2E memakai build produksi; (2) render SwiftShader yang lebih berat membuat alur utama melewati batas 300 detik → scene kini tidak dirender ulang selama panel terbuka.
 - Pada 2026-10-01 alur utama E2E sekali gagal (berjalan ±5 menit, kemungkinan melewati batas waktu 300 detik) saat dev server pengguna sedang berjalan dan dipakai ulang oleh Playwright. Rincian galatnya tidak tersimpan, dan dua kali jalan ulang lulus. Dugaan: beban CPU (SwiftShader). Penyebab pastinya belum dikonfirmasi.

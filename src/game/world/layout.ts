@@ -141,6 +141,16 @@ export const EXPANSION_FURNITURE: Record<Exclude<RoomId, 'counter-2'>, AABB[]> =
 
 export const COUNTER2_BLOCK: AABB = { minX: -5.8, maxX: -4.2, minZ: 2.4, maxZ: 3.0 };
 
+/** Properti luar yang menghalangi pemain: tiang lampu, pot pohon, motor parkir (di luar jalur pasien). */
+export const EXTERIOR_COLLIDERS: AABB[] = [
+  { minX: -13.6, maxX: -13.2, minZ: 14.3, maxZ: 14.7 },
+  { minX: 13.2, maxX: 13.6, minZ: 14.3, maxZ: 14.7 },
+  { minX: -15.0, maxX: -13.8, minZ: 12.8, maxZ: 14.0 },
+  { minX: 13.7, maxX: 14.9, minZ: 12.8, maxZ: 14.0 },
+  { minX: -11.1, maxX: -9.0, minZ: 11.8, maxZ: 13.3 },
+  { minX: 8.0, maxX: 10.2, minZ: 11.2, maxZ: 12.7 },
+];
+
 /** Batas area pemain (termasuk trotoar di depan apotek). */
 export const WORLD_BOUNDS: AABB = { minX: -16, maxX: 16, minZ: -17.8, maxZ: 16 };
 

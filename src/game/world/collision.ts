@@ -3,6 +3,7 @@ import {
   COUNTER2_BLOCK,
   EXPANSION_DOORS,
   EXPANSION_FURNITURE,
+  EXTERIOR_COLLIDERS,
   FURNITURE,
   INTERIOR_DOORS,
   UPGRADE_FURNITURE,
@@ -24,7 +25,7 @@ function doorBox(x: number, z: number, width: number): AABB {
 
 /** Semua kotak tabrakan untuk kondisi dunia saat ini. */
 export function buildColliders(ctx: ColliderContext): AABB[] {
-  const list: AABB[] = [...WALLS, ...Object.values(FURNITURE)];
+  const list: AABB[] = [...WALLS, ...Object.values(FURNITURE), ...EXTERIOR_COLLIDERS];
   for (const d of INTERIOR_DOORS) if (!ctx.doorsOpen[d.id]) list.push(doorBox(d.x, d.z, d.width));
   for (const d of EXPANSION_DOORS) {
     const unlocked = d.room && ctx.unlockedRooms.includes(d.room);

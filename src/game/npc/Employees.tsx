@@ -1,24 +1,19 @@
-import { memo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useGame } from '@/stores/gameStore';
-import { Humanoid, type HumanoidAnim } from './Humanoid';
+import { Character, type CharacterAnim } from './Character';
+import { staffStyle } from './characterModel';
 import { staffSpot, type Vec2 } from '@/game/world/layout';
 import { CanvasLabel } from '@/game/world/CanvasLabel';
 import { ROLE_INFO } from '@/domain/employees';
 import type { Employee } from '@/domain/types';
 
-const UNIFORM: Record<Employee['role'], string> = {
-  cashier: '#2563eb',
-  assistant: '#0d9488',
-  pharmacist: '#0f766e',
-  warehouse: '#ea580c',
-  manager: '#1e293b',
-};
-
 const StaffNPC = memo(function StaffNPC({ e, spot, facing }: { e: Employee; spot: Vec2; facing: number }) {
   const g = useRef<THREE.Group>(null);
-  const anim = useRef<HumanoidAnim>({ moving: false, phase: 0 });
+  const anim = useRef<CharacterAnim>({ moving: false, phase: 0 });
+  const { id, name, role, appearance } = e;
+  const style = useMemo(() => staffStyle({ id, name, role, appearance }), [id, name, role, appearance]);
   const pos = useRef<Vec2>([...spot]);
   useFrame((_, dt) => {
     if (!g.current) return;
@@ -36,12 +31,13 @@ const StaffNPC = memo(function StaffNPC({ e, spot, facing }: { e: Employee; spot
       g.current.rotation.y = THREE.MathUtils.damp(g.current.rotation.y, facing, 6, dt);
     }
     anim.current.moving = d > step && d <= 6;
-    anim.current.working = e.status === 'working';
+    anim.current.speed = 2;
+    anim.current.mode = e.status === 'working' && !anim.current.moving ? 'work' : 'idle';
     g.current.position.set(pos.current[0], 0, pos.current[1]);
   });
   return (
     <group ref={g}>
-      <Humanoid appearance={e.appearance} shirt={UNIFORM[e.role]} coat={e.role === 'pharmacist'} anim={anim} />
+      <Character style={style} anim={anim} />
       <CanvasLabel text={`${e.name.split(' ')[0]} · ${ROLE_INFO[e.role].label}${e.status === 'resting' ? ' (istirahat)' : ''}`} width={1.3} height={0.18} position={[0, 2.15, 0]} fontSize={44} background="#0b1215" billboard />
     </group>
   );

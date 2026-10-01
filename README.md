@@ -83,7 +83,8 @@ Game adalah situs statis hasil Vite dan memakai `HashRouter`, sehingga tidak mem
 - [ARCHITECTURE.md](ARCHITECTURE.md) — arsitektur, modul, alur data
 - [GAME_DESIGN.md](GAME_DESIGN.md) — gameplay loop, sistem, ekonomi, mode
 - [TESTING.md](TESTING.md) — cara & hasil pengujian
+- [ART_DIRECTION.md](ART_DIRECTION.md) — arah visual, rencana & hasil peningkatan grafis
 
 ## Aset & lisensi
 
-Seluruh model 3D, teks papan, dan audio dibuat di dalam kode (primitif Three.js, CanvasTexture, Web Audio). Tidak ada aset pihak ketiga. Audio berstatus placeholder.
+Seluruh model 3D (arsitektur, perabot, karakter ber-rangka), tekstur PBR prosedural, kemasan produk, teks papan, dan audio dibuat di dalam kode (Three.js, CanvasTexture/DataTexture, Web Audio). Tidak ada aset pihak ketiga. Audio berstatus placeholder. Arah visual & anggaran performa: [ART_DIRECTION.md](ART_DIRECTION.md).

@@ -1,11 +1,18 @@
-import { Canvas } from '@react-three/fiber';
-import { useSettings } from '@/stores/settingsStore';
+import { useEffect, useLayoutEffect } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { useUi } from '@/stores/uiStore';
+import * as THREE from 'three';
 import { Building } from '@/game/world/Building';
 import { Furniture } from '@/game/world/Furniture';
 import { AutoDoor } from '@/game/objects/Door';
 import { Patients } from '@/game/npc/Patients';
 import { Employees } from '@/game/npc/Employees';
 import { PlayerController } from '@/game/player/PlayerController';
+import { DaylightDriver, SceneEnvironment, SceneLights, SkyDome } from '@/game/visual/Atmosphere';
+import { useVisualProfile, type VisualProfile } from '@/game/visual/quality';
+import { FloorAO } from '@/game/visual/FloorAO';
+import { SunPatches } from '@/game/visual/SunPatches';
+import { configureMaterials } from '@/game/world/materials';
 
 /** Mendeteksi dukungan WebGL untuk fallback non-3D. */
 export function hasWebGL(): boolean {
@@ -17,50 +24,48 @@ export function hasWebGL(): boolean {
   }
 }
 
-function Lights({ shadows }: { shadows: boolean }) {
-  return (
-    <>
-      <hemisphereLight args={['#eaf6ff', '#8a8f86', 1.1]} />
-      <ambientLight intensity={0.35} />
-      <directionalLight
-        position={[14, 22, 18]}
-        intensity={1.6}
-        castShadow={shadows}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-left={-22}
-        shadow-camera-right={22}
-        shadow-camera-top={22}
-        shadow-camera-bottom={-22}
-        shadow-bias={-0.0005}
-      />
-      <pointLight position={[-4, 2.2, 5.5]} intensity={5} distance={12} decay={1.5} />
-      <pointLight position={[5, 2.2, 5.5]} intensity={5} distance={12} decay={1.5} />
-      <pointLight position={[0, 2.2, -0.5]} intensity={4} distance={9} decay={1.5} />
-      <pointLight position={[-8, 2.2, -6]} intensity={5} distance={9} decay={1.5} />
-      <pointLight position={[0, 2.2, -6]} intensity={5} distance={9} decay={1.5} />
-      <pointLight position={[8, 2.2, -6]} intensity={5} distance={9} decay={1.5} />
-    </>
-  );
+/** Memasang tekstur prosedural sesuai kualitas grafis sebelum frame pertama. */
+function MaterialQuality({ profile }: { profile: VisualProfile }) {
+  useLayoutEffect(() => configureMaterials(profile), [profile]);
+  return null;
+}
+
+/**
+ * Saat panel/modal terbuka (latar redup menutupi scene), scene 3D hanya dirender bila diminta:
+ * hemat GPU & baterai selama pemain bekerja di panel. Logika permainan tetap berjalan (timer terpisah).
+ */
+function RenderThrottle() {
+  const setFrameloop = useThree((s) => s.setFrameloop);
+  const invalidate = useThree((s) => s.invalidate);
+  const covered = useUi((s) => s.panel !== null);
+  useEffect(() => {
+    setFrameloop(covered ? 'demand' : 'always');
+    if (covered) invalidate();
+  }, [covered, setFrameloop, invalidate]);
+  return null;
 }
 
 export function PharmacyScene() {
-  const quality = useSettings((s) => s.settings.graphicsQuality);
-  const shadows = quality === 'high';
-  const dpr: [number, number] = quality === 'low' ? [0.75, 1] : quality === 'medium' ? [1, 1.5] : [1, 2];
+  const profile = useVisualProfile();
   return (
     <Canvas
-      shadows={shadows}
-      dpr={dpr}
-      gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', preserveDrawingBuffer: false }}
+      shadows={profile.sunShadows ? 'percentage' : false}
+      dpr={profile.dpr}
+      gl={{ antialias: profile.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: false, toneMapping: THREE.NeutralToneMapping, toneMappingExposure: 0.95 }}
       camera={{ fov: 70, near: 0.05, far: 120, position: [0, 1.65, 0.4] }}
       data-testid="game-canvas"
       style={{ position: 'absolute', inset: 0 }}
     >
-      <color attach="background" args={['#bcdff0']} />
-      <fog attach="fog" args={['#bcdff0', 30, 80]} />
-      <Lights shadows={shadows} />
-      <Building shadows={shadows} />
+      <fog attach="fog" args={['#d3e6f3', 35, 95]} />
+      <MaterialQuality profile={profile} />
+      <RenderThrottle />
+      <DaylightDriver />
+      <SkyDome />
+      <SceneEnvironment resolution={profile.envResolution} />
+      <SceneLights profile={profile} />
+      <Building shadows={profile.sunShadows} />
+      <FloorAO pxPerMeter={profile.quality === 'low' ? 14 : 24} />
+      {!profile.sunShadows && <SunPatches />}
       <Furniture />
       <AutoDoor />
       <Patients />

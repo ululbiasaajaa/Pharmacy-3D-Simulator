@@ -10,7 +10,8 @@ import { PLAYER_RADIUS, PLAYER_SPAWN, WALLS, type AABB } from '@/game/world/layo
 import { INTERACTABLES, interact } from '@/game/interactions/interactions';
 import { tutorialAwaits, tutorialSignal } from '@/domain/guidance';
 import { audio } from '@/services/audio/audioEngine';
-import { Humanoid, type HumanoidAnim } from '@/game/npc/Humanoid';
+import { Character, type CharacterAnim } from '@/game/npc/Character';
+import { PLAYER_STYLE } from '@/game/npc/characterModel';
 import { flashMessage } from '@/components/hud/flash';
 
 const EYE = 1.65;
@@ -29,7 +30,7 @@ export function PlayerController() {
   const lastWorldSync = useRef(0);
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const avatarRef = useRef<THREE.Group>(null);
-  const avatarAnim = useRef<HumanoidAnim>({ moving: false, phase: 0 });
+  const avatarAnim = useRef<CharacterAnim>({ moving: false, phase: 0 });
   const cameraMode = useSettings((s) => s.settings.cameraMode);
 
   const doorsOpen = useWorld((s) => s.doorsOpen);
@@ -62,11 +63,15 @@ export function PlayerController() {
         pitch.current = (pitchDeg * Math.PI) / 180;
       },
       scene,
+      gl,
+      camera,
+      /** Menjalankan aksi domain (uji visual: mis. memaksa status pasien). */
+      act,
     };
     return () => {
       delete w.__pharmacyDebug;
     };
-  }, [scene]);
+  }, [scene, gl, camera]);
 
   // ------------------------------------------------------------ Input
   useEffect(() => {
@@ -282,7 +287,7 @@ export function PlayerController() {
 
   return (
     <group ref={avatarRef} visible={cameraMode === 'third'}>
-      <Humanoid appearance={2} shirt="#0e655b" coat anim={avatarAnim} />
+      <Character style={PLAYER_STYLE} anim={avatarAnim} />
     </group>
   );
 }

@@ -9,6 +9,11 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  optimizeDeps: {
+    // Dipra-bundel sejak server dinyalakan: bila ditemukan saat PlayScreen dimuat, Vite me-reload
+    // halaman (state permainan hilang tepat setelah tombol Mulai ditekan).
+    include: ['three/examples/jsm/geometries/RoundedBoxGeometry.js', 'three/examples/jsm/utils/BufferGeometryUtils.js'],
+  },
   server: {
     port: 5173,
     proxy: {
