@@ -25,6 +25,10 @@ export const TEXTURES = {
   asphalt: { id: 'Asphalt025A', meters: 4, use: 'Aspal jalan' },
   concrete: { id: 'Concrete033', meters: 3, use: 'Beton kanstin & teras' },
   facade: { id: 'PaintedPlaster017', meters: 3, contrast: 0.6, use: 'Plester fasad ruko' },
+  brick: { id: 'Bricks101', meters: 1.6, use: 'Bata ekspos fasad ruko' },
+  stone: { id: 'Tiles143', meters: 1.8, contrast: 0.8, use: 'Batu alam tempel (fasad ruko)' },
+  corrugated: { id: 'CorrugatedSteel005', meters: 2.0, use: 'Seng gelombang atap & kanopi' },
+  planks: { id: 'Planks037A', meters: 1.6, use: 'Papan kayu pintu lipat & warung' },
 };
 
 const SIZES = [512, 1024];

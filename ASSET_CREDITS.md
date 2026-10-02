@@ -8,7 +8,7 @@ Semua aset pihak ketiga berlisensi terbuka yang mengizinkan pemakaian, modifikas
 |---|---|---|---|
 | Karakter (31 avatar) + animasi | Microsoft Rocketbox | MIT | 12314 KB + 2162 KB |
 | Properti (15 model) | Poly Haven | CC0 1.0 | 3096 KB |
-| Tekstur foto PBR (12 set) | ambientCG | CC0 1.0 | 1458 KB (512 px) / 6817 KB (1024 px) |
+| Tekstur foto PBR (16 set) | ambientCG | CC0 1.0 | 1824 KB (512 px) / 8139 KB (1024 px) |
 
 ## Microsoft Rocketbox Avatar Library (MIT)
 
@@ -104,6 +104,10 @@ Sumber: <https://github.com/microsoft/Microsoft-Rocketbox> — Copyright (c) 202
 | asphalt | [Asphalt025A](https://ambientcg.com/a/Asphalt025A) | Aspal jalan | 4 m |
 | concrete | [Concrete033](https://ambientcg.com/a/Concrete033) | Beton kanstin & teras | 3 m |
 | facade | [PaintedPlaster017](https://ambientcg.com/a/PaintedPlaster017) | Plester fasad ruko | 3 m |
+| brick | [Bricks101](https://ambientcg.com/a/Bricks101) | Bata ekspos fasad ruko | 1.6 m |
+| stone | [Tiles143](https://ambientcg.com/a/Tiles143) | Batu alam tempel (fasad ruko) | 1.8 m |
+| corrugated | [CorrugatedSteel005](https://ambientcg.com/a/CorrugatedSteel005) | Seng gelombang atap & kanopi | 2 m |
+| planks | [Planks037A](https://ambientcg.com/a/Planks037A) | Papan kayu pintu lipat & warung | 1.6 m |
 
 ## Aset buatan sendiri
 

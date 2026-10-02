@@ -10,9 +10,10 @@ import { GATES, STREET, TRAFFIC, VAN_REVERSE_OUT, VAN_ROUTE_IN, VAN_ROUTE_OUT } 
  * - mobil boks PBF: datang, mundur ke area bongkar muat, parkir selama ada kiriman, lalu pergi.
  */
 
-export type TrafficKind = 'car' | 'angkot';
-export const TRAFFIC_HALF: Record<TrafficKind, number> = { car: 2.1, angkot: 1.98 };
-const CRUISE: Record<TrafficKind, number> = { car: 7.5, angkot: 6.2 };
+/** Jenis lalu lintas: MPV ('car'), hatchback, angkot. Setengah panjang keseluruhan = VEHICLES.length / 2 (vehicleModels.ts). */
+export type TrafficKind = 'car' | 'hatch' | 'angkot';
+export const TRAFFIC_HALF: Record<TrafficKind, number> = { car: 2.25, hatch: 1.905, angkot: 2.09 };
+const CRUISE: Record<TrafficKind, number> = { car: 7.5, hatch: 7.8, angkot: 6.2 };
 /** Laju di sekitar portal gerbang (m/s). */
 const GATE_SPEED = 4.5;
 const ACCEL = 2.5;
@@ -183,7 +184,10 @@ export class TrafficSim {
 // ------------------------------------------------------------------ Mobil boks PBF
 
 export type VanPhase = 'away' | 'arrive' | 'parked' | 'closing' | 'reverseOut' | 'leave';
-export const VAN_HALF = 2.5;
+/** Setengah panjang mobil boks termasuk bemper & lampu belakang (VEHICLES.van.length / 2). */
+export const VAN_HALF = 2.6;
+/** Jarak sumbu roda mobil boks (VEHICLES.van). */
+const VAN_WHEELBASE = 3.22;
 const VAN_HALF_W = 0.95;
 
 /** Polyline dengan panjang kumulatif untuk interpolasi berdasarkan jarak tempuh. */
@@ -231,6 +235,10 @@ export class VanSim {
   /** Rotasi Y (moncong = +Z lokal); π/2 = menghadap timur. */
   heading = Math.PI / 2;
   speed = 0;
+  /** Jarak tempuh bertanda (m; negatif saat mundur) — memutar roda. */
+  odometer = 0;
+  /** Sudut belok roda depan (radian, + = ke kiri) dari laju perubahan arah (model sepeda). */
+  steer = 0;
   /** Lama parkir / hitung mundur fase (s). */
   timer = 0;
   private cooldown = 0;
@@ -293,7 +301,10 @@ export class VanSim {
     const free = Math.min(this.freeAhead(people, movers), limit);
     const desired = Math.min(cruise, stoppable(remaining) + 0.25, stoppable(free - 0.1) + (free > 0.3 ? 0.2 : 0));
     this.speed = approachSpeed(this.speed, desired, dt);
-    this.s += Math.min(this.speed * dt, remaining, Math.max(0, free));
+    const moved = Math.min(this.speed * dt, remaining, Math.max(0, free));
+    this.s += moved;
+    this.odometer += this.reversing ? -moved : moved;
+    const prevHeading = this.heading;
     [this.x, this.z] = this.path.at(this.s);
     // Arah moncong: menuju titik 2,2 m di depan pada lintasan (maju) atau kebalikannya (mundur); diredam.
     const ahead = this.path.at(this.s + 2.2);
@@ -302,6 +313,11 @@ export class VanSim {
     if (Math.hypot(dx, dz) < 0.05) [dx, dz] = this.path.dirAt(this.s);
     const target = this.reversing ? Math.atan2(-dx, -dz) : Math.atan2(dx, dz);
     this.heading = wrapAngle(this.heading + wrapAngle(target - this.heading) * Math.min(1, dt * 5));
+    if (moved > 1e-4) {
+      // Model sepeda: tan(δ) = L · (perubahan arah per meter); arah dibalik saat mundur.
+      const want = Math.atan(VAN_WHEELBASE * (wrapAngle(this.heading - prevHeading) / moved)) * (this.reversing ? -1 : 1);
+      this.steer += (Math.max(-0.6, Math.min(0.6, want)) - this.steer) * Math.min(1, dt * 6);
+    }
     return this.path.total - this.s < 0.02;
   }
 

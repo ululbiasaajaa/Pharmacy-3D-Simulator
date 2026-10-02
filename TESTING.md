@@ -31,6 +31,7 @@ E2E berjalan terhadap build produksi (sama dengan yang di-deploy) agar halaman t
 | `scripts/assets/assets.test.mjs` | Kelengkapan hasil pipeline aset (lingkungan Node): setiap tekstur foto punya albedo/normal/ORM di semua ukuran, setiap avatar & pustaka animasi ada dengan klip untuk semua status, lisensi MIT Rocketbox disertakan, setiap model CC0 ada dan ≤ 15 rb segitiga |
 | `world.test.ts` | **World building:** flood fill keterjangkauan pada collider (grid 0,2 m, radius pemain 0,3) dari titik muncul ke halaman, ujung kawasan, zebra cross, trotoar seberang, halte, kios, gang samping & belakang, area bongkar muat, gudang lewat pintu bongkar muat, dan ruang dalam; area tertutup (dalam ruko, luar gerbang, balik tembok belakang) tidak terjangkau; pintu bongkar muat tertutup memisahkan gudang dari gang; van parkir & motor karyawan tidak menutup jalur; rute pasien, graf pejalan kaki (terhubung), rute van, dan lajur bebas collider; properti jalan tidak tumpang tindih atau masuk bangunan; batas dunia tertutup struktur yang terlihat |
 | `traffic.test.ts` | Lalu lintas: berhenti di garis henti saat ada orang di zebra cross lalu jalan lagi, berhenti untuk orang di lajur, jaga jarak dengan kendaraan diam, angkot berhenti di halte, simulasi 240 detik tanpa tumpang tindih. Mobil boks: datang saat ada kiriman → parkir di area bongkar muat (posisi & arah) → pergi setelah diterima, menunggu lajur timur kosong sebelum mundur ke jalan (tanpa kebuntuan), berhenti untuk orang di gang |
+| `vehicles.test.ts` | **Fase kualitas kendaraan:** ukuran keseluruhan tiap model kendaraan sesuai spesifikasi, `TRAFFIC_HALF` = setengah panjang model, `VAN_HALF`/`VAN_SIZE` ≥ panjang van; roda menapak tepat di y = 0, bodi tidak menyentuh jalan, ambang mobil penumpang di bawah as roda, tidak ada verteks bodi di dalam volume ban (tanpa clipping), roda di dalam panjang bodi; anggaran segitiga velg (mobil < 1.000, motor < 300); motor matik menapak tanah, seluruhnya di dalam collider parkir (termasuk ujung setang), proporsi 110–125 cc, roda tidak menembus bodi/dek/spakbor; tiap gaya fasad ruko memiliki bahan cirinya sendiri dan ciri gaya lain tidak muncul di gaya yang salah, keenam gaya dipakai; nama toko unik dengan baris layanan, ruko latar di luar gerbang dan tidak tumpang tindih; geometri ruko di dalam kavling, tidak di bawah tanah, dan tidak masuk badan jalan; odometer van naik saat maju & turun saat mundur, sudut belok roda depan ≤ 0,6 rad dan muncul saat berbelok |
 | `pedestrians.test.ts` | Graf pejalan kaki: semua tujuan terjangkau dari setiap pintu rumah, penyeberangan jalan hanya lewat zebra cross, rencana kegiatan berakhir di rumah/halte dan tidak memakai kafe dua kali, titik kegiatan tidak di dalam collider |
 | `ai.test.ts` | Pemeriksaan ketersediaan proxy (`/health` ok/404/offline), AI tidak dipanggil bila proxy tidak tersedia, fallback lokal saat AI mati/proxy gagal/respons salah format, sanitasi keluaran AI (tolak instruksi dosis), ulasan dari data laporan, petunjuk tutor berbasis kondisi |
 
@@ -47,7 +48,19 @@ Menu utama; alur UI pelayanan obat bebas → kasir → pembayaran; klik ganda to
 1. **Alur utama (Mode Karier)**: permainan baru → tutorial (sambutan, lewati langkah gerak, buka apotek) → layani pasien tutorial (keluhan sakit kepala → parasetamol) → bayar di kasir (kas +Rp 4.000) → pindahkan stok gudang→rak → buat pesanan ke pemasok → percepat waktu hingga barang tiba → terima ke gudang → klaim hadiah misi → simpan ke Slot 1 → muat ulang halaman → muat Slot 1 → kas & hari sama; tanpa error halaman.
 2. **Learning Mode**: mulai pelajaran resep → wizard resep lengkap (kelengkapan, produk, batch FEFO, jumlah, etiket) → serahkan → bayar → pelajaran ditandai selesai dengan umpan balik.
 
-## Hasil terakhir (2026-10-02, world building)
+## Hasil terakhir (2026-10-03, fase kualitas kendaraan)
+
+| Pemeriksaan | Hasil |
+|---|---|
+| Type check | ✅ lulus, 0 galat |
+| Lint | ✅ lulus, 0 galat/peringatan |
+| Vitest | ✅ 132/132 lulus (17 berkas; fase ini menambah `vehicles.test.ts`, 9 tes) |
+| Build produksi | ✅ berhasil |
+| Playwright E2E | ✅ 2/2 lulus terhadap build produksi (Chromium headless + SwiftShader, kualitas Rendah). Alur utama 3,2 menit (batas 5 menit), Learning Mode 1,4 menit; total 5,1 menit termasuk build |
+| Pemeriksaan visual (Playwright, GPU asli) | ✅ kendaraan (showroom dev & lalu lintas yang melintas), motor parkir, ruko kawasan & latar, siklus mobil boks, malam hari, profil Rendah; 0 error konsol. Rincian di PROJECT_STATUS.md "Fase kualitas kendaraan → Pengujian" |
+| Benchmark A/B (Iris Xe) | ✅ diukur: rata-rata 5 sudut pandang luar +0,17 / +0,37 / +0,67 ms (Rendah / Sedang / Tinggi) dibanding sebelum fase |
+
+## Hasil sebelumnya (2026-10-02, world building)
 
 | Pemeriksaan | Hasil |
 |---|---|
@@ -59,6 +72,16 @@ Menu utama; alur UI pelayanan obat bebas → kasir → pembayaran; klik ganda to
 | Smoke visual manual (tangkapan layar Playwright) | ✅ menu, scene 3D, antrean NPC, panel pelayanan/kasir/tablet, orang ketiga, eksterior. **Revisi 2**, diperiksa di GPU asli dengan profil Rendah dan Tinggi: avatar (antre, duduk, dilayani, staf di balik meja, pejalan kaki), tekstur foto, dekorasi apotek, ruang administrasi/gudang/istirahat, fasad & jalan, papan kapur, profil Ultra tanpa galat |
 
 ## Pengukuran performa grafis
+
+**Fase kualitas kendaraan (2026-10-02).**
+- **Pembanding:** commit sebelum fase (`eb25ed4`) diekspor dengan `git archive` ke folder sementara, memakai `node_modules` yang sama lewat junction dan cache Vite terpisah, lalu dijalankan di dev server kedua. Kedua versi diukur **berselang-seling dalam satu sesi** dengan skrip yang sama: 8 sudut pandang (2 interior, 6 luar), frame penuh lewat `__pharmacyDebug.frame()`, median 3 × 30 frame, plus draw call & segitiga dari `renderer.info`. Hasilnya ada di PROJECT_STATUS.md "Fase kualitas kendaraan → Performa".
+- **Pemeriksaan visual** (tangkapan layar Playwright, GPU asli):
+  - showroom kendaraan khusus mode dev (`localStorage pharmacy3d.debugShowroom = 1`): MPV, hatchback, angkot, dan mobil boks dari samping, depan ¾, belakang ¾, dan close-up roda;
+  - kendaraan lalu lintas yang sedang melintas, ditangkap saat registri kendaraan melaporkan posisinya di depan kamera;
+  - motor parkir dari 6 sudut; siklus mobil boks (datang → parkir → mundur → pergi) dengan log posisi;
+  - malam hari (19.30): lampu kendaraan bergerak menyala, lampu motor parkir tidak;
+  - profil Rendah: bayangan kontak tanpa bayangan matahari.
+- Ukuran, posisi, dan collider model diuji otomatis di `vehicles.test.ts`.
 
 **World building (2026-10-02).** Kawasan diuji juga secara dinamis di browser dengan GPU asli lewat hook dev `__pharmacyDebug.district()`. Hook itu melaporkan `vanParked`, registri kendaraan dan orang di luar, serta status halte. Langkah ujinya:
 1. Suntikkan kiriman berstatus `arrived`.
@@ -93,6 +116,7 @@ Hasil ada di [ART_DIRECTION.md §12](ART_DIRECTION.md#12-hasil-pengukuran). Angk
 - Tampilan avatar dan animasi motion capture diperiksa lewat tangkapan layar, bukan asersi otomatis. Unit test hanya memeriksa pemetaan, ketersediaan berkas, dan klip.
 - Benchmark GPU berfluktuasi ±1–2 ms antarputaran pada laptop yang sama, karena server pengembangan ikut berjalan dan ada pemuatan aset sesaat. Profil Ultra hanya diukur di GPU terintegrasi (±38 ms, sesuai peringatannya), bukan di GPU diskrit sasarannya.
 - E2E hanya di Chromium.
+- **Fase kualitas kendaraan:** kualitas tampilan kendaraan & ruko dinilai dari tangkapan layar, bukan asersi otomatis. Unit test hanya memeriksa ukuran, posisi, collider, anggaran segitiga velg, dan ciri bahan per gaya fasad. Skrip tangkapan layar & benchmark berada di folder kerja sementara, bukan di repo. Satu putaran benchmark versi baru (Sedang) gagal karena halaman dev dimuat ulang di tengah pengukuran (hook `__pharmacyDebug` hilang); putaran itu dibuang dan diganti putaran tambahan.
 - **World building:** perilaku dinamis (van, lalu lintas, pejalan kaki, kurir/penjaga menoleh) diuji lewat logika murni di unit test dan diperiksa di browser. Belum ada E2E otomatis untuk perilaku visual di dalam scene. Skrip cek dinamis, peta audit, dan benchmark berada di folder kerja sementara pengembang, bukan di repo.
 - Benchmark world building berfluktuasi besar antarputaran (render identik 6,5–9,0 ms; sesekali lonjakan 20–27 ms). Angka yang dilaporkan adalah median beberapa putaran yang diselang-seling dalam satu sesi.
 - Selama peningkatan visual (2026-10-01), E2E sempat gagal karena dua hal yang sudah diperbaiki: (1) dev server Vite me-reload halaman saat menemukan dependensi baru (`RoundedBoxGeometry`, `BufferGeometryUtils`) tepat setelah game dimulai → kini dipra-bundel (`optimizeDeps.include`) dan E2E memakai build produksi; (2) render SwiftShader yang lebih berat membuat alur utama melewati batas 300 detik → scene kini tidak dirender ulang selama panel terbuka.

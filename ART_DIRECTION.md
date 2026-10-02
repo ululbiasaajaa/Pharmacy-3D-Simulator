@@ -309,7 +309,7 @@ Eksterior tidak lagi sekadar latar di balik dinding tak terlihat. Sekarang ia be
 
   Semuanya latar dan tidak memengaruhi simulasi, kecuali mobil boks yang mengikuti status kiriman.
 - **Model buatan sendiri (tanpa aset baru):**
-  - mobil boks, mobil, dan angkot dibuat dari profil samping yang diekstrusi (teknik yang sama dengan motor matik), plus roda torus, kaca miring, lampu, bemper, pelat, dan spion;
+  - mobil boks, mobil, dan angkot (model ulang di fase kualitas kendaraan, lihat §9a);
   - gerbang, halte, rumah warga, dan properti gang dibangun dengan `GeoBuilder`.
 
   Avatar memakai Rocketbox yang sudah ada.
@@ -317,10 +317,42 @@ Eksterior tidak lagi sekadar latar di balik dinding tak terlihat. Sekarang ia be
   - paving block, aspal, plester fasad, dan ubin pemandu (foto ambientCG);
   - lantai gang & tiang beton memakai plester bertint abu-abu, karena tekstur Concrete033 terlalu gelap (rata-rata RGB ±80) dan tampak seperti tanah becek;
   - AO kontak kawasan dipanggang sekali dari collider (10 px/m).
-- **Pohon ketapang kencana & motor matik:** sama seperti revisi 2 (kartu daun beratlas, bodi motor hasil ekstrusi).
+- **Pohon ketapang kencana:** sama seperti revisi 2 (kartu daun beratlas). Motor matik dimodel ulang (§9a).
 - **Properti Poly Haven:** AC luar detail hanya untuk 3 unit di apotek (dekat pemain). AC ruko latar memakai model sederhana yang digabung ke mesh kawasan. Juga papan kapur berdiri, panel listrik di mulut gang, dan meja–kursi teras kedai kopi.
 
 Tidak dipakai: lampu jalan dan tempat sampah Poly Haven yang bergaya Eropa, serta APAR Poly Haven yang alasnya bertuliskan huruf Korea. Lampu jalan tetap memakai model modern buatan sendiri, dan APAR dibuat sendiri.
+
+### 9a. Kendaraan & bangunan (fase kualitas kendaraan, 2026-10-02)
+
+Audit, daftar berkas, hasil uji, dan performa ada di PROJECT_STATUS.md "Fase kualitas kendaraan". Aturan gaya yang dipakai:
+
+- **Satu gaya dengan apotek:** semi-realistis, proporsi dunia nyata, permukaan halus berbevel, tekstur foto CC0 untuk bahan besar, detail kecil dari geometri (bukan tekstur datar). Tidak ada kotak polos atau bentuk "mainan".
+- **Mobil (MPV, hatchback):**
+  - siluet dari profil samping dengan **lengkung roda sungguhan** dan kap/atap berupa kurva halus; denah dibentuk ulang (sudut moncong & buritan membulat) dan kabin menyempit ke atas (tumblehome);
+  - kabin kaca gelap (kaca film, lazim di Indonesia) dengan pilar A/B/C/D, atap berwarna bodi, lis krom, garis pintu yang mengitari lengkung roda, gagang, garis karakter, ambang hitam;
+  - lampu depan berumah gelap dengan dua proyektor krom & garis DRL, sein, lampu belakang vertikal, lampu kabut, gril berlis krom, emblem generik, bemper berlubang udara, spion, rel atap (MPV), knalpot, antena sirip hiu, spoiler kecil;
+  - ambang bawah ±0,22–0,25 m (jarak bebas mobil penumpang Indonesia), jadi bodi tidak tampak "berkaki";
+  - cat `MeshPhysicalMaterial` dengan clearcoat; warna dari palet jalanan Indonesia (putih, perak, hitam, abu, sesekali merah/biru).
+- **Angkot (minibus angkutan kota):** kabin di atas roda depan, kaca depan besar, jendela penumpang berbingkai, pintu geser terbuka di sisi trotoar (lubang pintu gelap, anak tangga, pegangan), lis putih, bemper krom, rak atap, papan trayek "05 MELATI – TERMINAL", pelat kuning angkutan umum, pelindung lumpur. Bus besar tidak dibuat karena tidak lazim di jalan ruko 2 lajur.
+- **Mobil boks distributor:** kabin cab-over dengan kaca depan, gril, lampu persegi, spion besar bertangkai; bak aluminium bergelombang (tekstur CC0) berbingkai dengan pintu belakang dua daun dan palang pengunci; bemper berlampu; sasis, tangki, pelindung lumpur.
+- **Roda (`wheelModels.ts`, dipakai semua kendaraan):** ban lathe dengan dinding samping cembung & alur tapak, velg alloy berpalang dengan **lubang sungguhan** (cakram & kaliper terlihat di baliknya), tutup tengah. Parameter `detail` menurunkan segmen untuk motor parkir dan tumpukan ban.
+- **Motor matik (110–125 cc):** cover depan berbentuk V dengan topeng gelap & lampu, pelindung kaki dalam hitam, batok setang + spidometer, bodi belakang meruncing dengan stiker garis, cover bawah hitam, jok dua tingkat, begel, spakbor depan & belakang, garpu teleskopik, bak CVT + sokbreker (kiri), knalpot berpelindung panas (kanan), standar tengah, spion oval, sein, pelat hitam. Lampu motor parkir tidak menyala saat malam.
+- **Pelat nomor:** tekstur kanvas dengan nomor fiktif (putih: kendaraan pribadi; kuning: angkutan umum).
+- **Ruko — arketipe fasad (`shopModels.ts`), tiap ruko memakai salah satunya:**
+
+  | Gaya | Ciri |
+  |---|---|
+  | `modern` | Plester beralur horizontal, jendela pita lebar, sirip aluminium, kanopi beton tipis dengan lampu sorot & fasia papan nama, etalase kaca berceruk 0,3 m di balik pintu harmonika |
+  | `klasik` | Atap pelana genteng berlisplang, roster, jendela nako, pintu lipat papan kayu, pilar keramik, kanopi seng bertopang |
+  | `bata` | Bata ekspos lantai atas, jendela berbingkai putih, ambang & pilar batu alam, balkon besi, kanopi kain bergaris |
+  | `warung` | Terpal miring lebar, papan nama besar, etalase lauk (piring disusun bertingkat ala rumah makan Padang) |
+  | `bengkel` | Kanopi seng dalam, tumpukan ban, motor servis, papan perkakas |
+  | `bangunan` | Kanopi seng, papan perkakas, kaleng cat & pipa |
+
+  Isi kios memakai **atlas barang kanvas** (`goodsAtlasTexture`): kemasan dengan kata kategori generik (tanpa merek nyata), renteng sachet, kain/batik, poster, makanan, dan barang lain. Pakaian berupa siluet kemeja bergantung. Papan nama berisi dua baris: nama toko + layanan (mis. "SEMBAKO · GAS · AIR GALON").
+- **Ruko latar di luar gerbang:** 16 ruko tertutup bergaya sama (bukan kotak polos) dengan LOD 1: kisi roster, balkon, bilah nako, dan jeruji disederhanakan; pipa air & AC dihilangkan.
+- **Bahan foto baru (ambientCG CC0):** bata ekspos `Bricks101`, batu alam `Tiles143`, seng gelombang `CorrugatedSteel005`, papan kayu `Planks037A`.
+- **Identitas apotek tidak diubah:** fasad, kanopi beton, papan nama, dan etalase apotek tetap seperti sebelumnya.
 
 ---
 
@@ -343,9 +375,9 @@ Tidak dipakai: lampu jalan dan tempat sampah Poly Haven yang bergaya Eropa, sert
 
 | Anggaran | Rendah | Sedang | Tinggi | Hasil (§12) |
 |---|---|---|---|---|
-| Waktu render per frame | ≤ 6 ms | ≤ 10 ms | ≤ 14 ms | Rendah ✅ · Sedang ⚠️ di batas (9,5–11,5 ms) · Tinggi ✅ |
-| Draw call (tampilan terberat) | ≤ 350 | ≤ 350 | ≤ 350 | Interior ≤ 300 ✅ · tampilan jalan 380–407 ❌ (label kanvas toko & stiker; lihat §13) |
-| Segitiga (tampilan terberat) | ≤ 400 rb | ≤ 400 rb | ≤ 400 rb | ±224 rb ✅ |
+| Waktu render per frame | ≤ 6 ms | ≤ 10 ms | ≤ 14 ms | Revisi 2: Rendah ✅ · Sedang ⚠️ di batas (9,5–11,5 ms) · Tinggi ✅. Fase kendaraan (2026-10-03, 5 sudut pandang luar): Rendah 6,19 ms ⚠️ · Sedang 10,43 ms ⚠️ di batas · Tinggi 12,36 ms ✅ |
+| Draw call (tampilan terberat) | ≤ 350 | ≤ 350 | ≤ 350 | Interior ≤ 300 ✅ · tampilan jalan 371–407 ❌ (sudah > 350 sebelum fase kendaraan; lihat §13) |
+| Segitiga (tampilan terberat) | ≤ 400 rb | ≤ 400 rb | ≤ 400 rb | ±224 rb (revisi 2) → 335 rb setelah fase kendaraan ✅ |
 | Unduhan aset 3D saat masuk permainan | ≤ 10 MB | ≤ 20 MB | ≤ 20 MB | 5,1 / 6,7 / 8,3 MB ✅ |
 
 **Teknik**
@@ -365,6 +397,12 @@ Tidak dipakai: lampu jalan dan tempat sampah Poly Haven yang bergaya Eropa, sert
   - kotak latar tanpa tepi bulat;
   - lalu lintas instanced;
   - satu lapisan AO lantai transparan di setiap titik.
+- **Kendaraan & ruko (fase kualitas kendaraan):**
+  - roda lalu lintas: 3 `InstancedMesh` (ban, velg, bagian gelap) untuk semua kendaraan; putaran & belokan dihitung di matriks instance;
+  - bayangan kontak instanced (satu bidang ber-alphaMap per kendaraan) sehingga kendaraan tetap menapak di profil tanpa bayangan matahari;
+  - busur lubang velg memakai kerapatan sudut yang sama dengan lingkar luar (velg mobil 3.672 → 792 segitiga);
+  - parameter `detail` roda (motor parkir 0,3; tumpukan ban 0,35; lalu lintas 0,7);
+  - ruko latar memakai LOD 1; geometri motor dibuat sekali lalu dipakai ulang.
 - Pengukuran memakai benchmark GPU asli (Chromium + ANGLE/D3D11):
   - satu frame penuh = logika + render + post-processing, lewat `__pharmacyDebug.frame()` khusus mode dev;
   - pemanasan 20 frame, lalu median 3 batch × 30 frame, disinkronkan dengan `readPixels`.
@@ -395,6 +433,8 @@ Setiap tahap mengikuti siklus yang sama:
 
 ## 12. Hasil pengukuran
 
+> **Fase kualitas kendaraan (2026-10-03):** A/B berselang-seling melawan commit sebelum fase, sesi yang sama, rata-rata 5 sudut pandang luar: +0,17 ms (Rendah), +0,37 ms (Sedang), +0,67 ms (Tinggi), atau +3–6%. Interior di dalam derau. Segitiga tampilan terberat 335 rb. Rincian & optimasi ada di PROJECT_STATUS.md "Fase kualitas kendaraan → Performa".
+>
 > **World building (2026-10-02):** pengukuran setelah kawasan, lalu lintas, dan pejalan kaki ditambahkan ada di PROJECT_STATUS.md "World building → Performa". Perbandingan dibuat dengan A/B di sesi yang sama: rata-rata 5 sudut pandang ±+0,7 ms (Rendah), ±−0,5 ms (Sedang), ±+1,0 ms (Tinggi). Tampilan interior setara atau lebih cepat berkat culling; tampilan jalan lebih berat. Angka absolut di bawah ini berasal dari sesi 2026-10-01 dan tidak dapat dibandingkan langsung dengan sesi berikutnya karena variansi iGPU.
 
 **Revisi 1**: waktu render rata-rata 5 sudut pandang, Iris Xe, 1920×1080, sebelum → sesudah V1–V7.
@@ -436,9 +476,11 @@ Keterbatasan pengukuran: satu perangkat saja, diukur di build pengembangan, tanp
 | Wajah Rocketbox didominasi ras Eropa | Pasien kurang terasa Indonesia | Dipilih avatar Asia, sawo matang, dan berjilbab; ke depan bisa memakai MakeHuman (CC0) atau model buatan sendiri |
 | Hanya 2 avatar berjilbab yang sesuai | Variasi jilbab terbatas | Sebagian teratasi dengan 6 varian warna busana (8 tampilan). Varian abaya punya artefak kecil di pergelangan (hanya terlihat sangat dekat). Mesh jilbab buatan sendiri untuk avatar lain adalah lanjutan berikutnya |
 | Animasi Rocketbox tanpa gerak wajah/jari bermakna | Wajah statis saat berbicara | Klip berbicara memakai gestur tubuh; blendshape visem Rocketbox tersedia di repositori sumber bila kelak dibutuhkan |
-| Tidak ada model gratis untuk perabot apotek, motor matik, dan pohon tropis | Harus dibuat sendiri | Dibuat dari kode dengan detail dan tekstur foto; motor masih tampak sederhana dari dekat. Pilihan realistis berikutnya: model di Blender atau membeli aset berlisensi jelas |
+| Tidak ada model gratis untuk perabot apotek, motor matik, kendaraan Indonesia (angkot, MPV), dan pohon tropis | Harus dibuat sendiri | Dibuat dari kode dengan detail dan tekstur foto (motor & kendaraan dimodel ulang 2026-10-02, §9a). Dari sangat dekat, panel hasil ekstrusi belum semulus model DCC. Pilihan realistis berikutnya: model di Blender atau membeli aset berlisensi jelas |
+| Kaca kendaraan gelap, tanpa pengemudi & interior kabin | Kendaraan bergerak tanpa sosok di dalamnya (tertutup kaca film) | Disengaja: kaca transparan butuh pengurutan transparansi + interior + avatar tambahan per kendaraan. Lanjutan: kaca semi-transparan + siluet pengemudi untuk LOD dekat |
+| Tidak ada motor yang melaju di jalan | Lalu lintas hanya mobil & angkot | Perlu pengendara beranimasi (pose duduk Rocketbox) dan sistem roda instanced untuk motor; direkomendasikan untuk fase berikutnya |
 | Post-processing (AO layar, bloom) terlalu berat untuk GPU terintegrasi | Profil Sedang dan Tinggi tanpa AO layar | AO sudut dan AO lantai terpanggang; AO layar tersedia di profil Ultra untuk GPU diskrit |
-| Profil Sedang di batas anggaran 10 ms pada tampilan jalan | Penurunan FPS saat menatap jalan dari teras | DPR Sedang diturunkan ke 1,25. Opsi lanjutan: atlas label kanvas (±100 label = ±100 draw call), LOD avatar jauh |
+| Profil Sedang di batas anggaran 10 ms pada tampilan jalan | Penurunan FPS saat menatap jalan dari teras | DPR Sedang diturunkan ke 1,25; urutan gambar permukaan latar (`LATE_DRAW`) menghemat ±0,3 ms. Opsi lanjutan: atlas bahan kendaraan, gabungan material ruko yang mirip, LOD avatar jauh |
 | Tekstur foto dan model menambah ukuran unduhan | Muat awal lebih lama | Tekstur ≤ 1K WebP, meshopt, lazy loading per avatar, profil Rendah 512 px; terukur 5–8 MB per sesi |
 | Kompresi tekstur GPU (KTX2/Basis) butuh encoder `toktx` yang tidak tersedia di lingkungan ini | Memori GPU lebih besar dibanding KTX2 | Ukuran tekstur dibatasi; KTX2 bisa ditambahkan di pipeline nanti tanpa mengubah kode game |
 | GI/lightmap terpanggang butuh unwrap UV2 dan path tracer offline | Belum ada pantulan cahaya antarpermukaan yang nyata | AO terpanggang sebagai pendekatan; lightmap dipertimbangkan setelah tata letak final |

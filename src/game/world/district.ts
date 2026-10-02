@@ -49,6 +49,8 @@ export const DISTRICT_BOUNDS: AABB = { minX: -38.3, maxX: 38.3, minZ: STREET.bac
 // ------------------------------------------------------------------ Bangunan
 
 export type ShopKind = 'closed' | 'kiosk' | 'warung' | 'bengkel' | 'cafe' | 'hardware';
+/** Arketipe fasad (shopModels.ts): bentuk & bahan berbeda, bukan sekadar warna. */
+export type ShopStyle = 'modern' | 'klasik' | 'bata' | 'warung' | 'bengkel' | 'bangunan';
 
 export interface Shop {
   id: string;
@@ -71,6 +73,9 @@ export interface Shop {
   teralis: boolean;
   /** Toren air di atap. */
   tank: boolean;
+  style: ShopStyle;
+  /** Baris kedua papan nama (layanan/barang; generik, bukan merek). */
+  tagline: string;
 }
 
 const near = (s: Omit<Shop, 'front' | 'facing'>): Shop => ({ ...s, front: STREET.frontZ, facing: 1 });
@@ -81,23 +86,81 @@ const far = (s: Omit<Shop, 'front' | 'facing' | 'depth'>): Shop => ({ ...s, fron
  * gang belakang tertutup bangunan nyata, bukan dinding tak terlihat. Semua nama fiktif & generik.
  */
 export const SHOPS: Shop[] = [
-  near({ id: 'S1', x0: -38.6, x1: -31.2, depth: 18, floors: 2, roof: 'gable', name: 'TOKO KELONTONG', sign: '#1f5f99', kind: 'kiosk', facade: 'facadeA', balcony: false, awning: 'fabric', awningMat: 'awningRed', teralis: true, tank: true }),
-  near({ id: 'S2', x0: -31.2, x1: -23.9, depth: 18, floors: 2, roof: 'flat', name: 'LAUNDRY KILOAN', sign: '#2e8bc0', kind: 'closed', facade: 'facadeB', balcony: true, awning: 'metal', awningMat: 'awningBlue', teralis: false, tank: false }),
-  near({ id: 'S3', x0: -23.9, x1: -16.6, depth: 31.7, floors: 3, roof: 'flat', name: 'FOTOKOPI & ATK', sign: '#c0392b', kind: 'kiosk', facade: 'facadeC', balcony: true, awning: 'fabric', awningMat: 'awningGreen', teralis: true, tank: true }),
-  near({ id: 'S4', x0: 16.6, x1: 23.9, depth: 31.7, floors: 2, roof: 'gable', name: 'KONTER PULSA', sign: '#e67e22', kind: 'kiosk', facade: 'facadeD', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: true, tank: false }),
-  near({ id: 'S5', x0: 23.9, x1: 31.2, depth: 18, floors: 3, roof: 'flat', name: 'TOKO BANGUNAN', sign: '#7f8c8d', kind: 'hardware', facade: 'facadeA', balcony: true, awning: 'metal', awningMat: 'awningRed', teralis: false, tank: true }),
-  near({ id: 'S6', x0: 31.2, x1: 38.6, depth: 18, floors: 2, roof: 'gable', name: 'RUMAH MAKAN PADANG', sign: '#b03a2e', kind: 'warung', facade: 'facadeB', balcony: false, awning: 'fabric', awningMat: 'awningRed', teralis: false, tank: true }),
-  far({ id: 'F0', x0: -38.6, x1: -30.88, floors: 2, roof: 'flat', name: 'BENGKEL MOTOR', sign: '#34495e', kind: 'bengkel', facade: 'facadeB', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: true, tank: true }),
-  far({ id: 'F1', x0: -30.88, x1: -23.16, floors: 3, roof: 'gable', name: 'TOKO ROTI', sign: '#d35400', kind: 'kiosk', facade: 'facadeC', balcony: true, awning: 'fabric', awningMat: 'awningRed', teralis: false, tank: false }),
-  far({ id: 'F2', x0: -23.16, x1: -15.44, floors: 2, roof: 'flat', name: 'SALON', sign: '#8e44ad', kind: 'closed', facade: 'facadeD', balcony: false, awning: 'fabric', awningMat: 'awningGreen', teralis: true, tank: true }),
-  far({ id: 'F3', x0: -15.44, x1: -7.72, floors: 3, roof: 'flat', name: 'TOKO EMAS', sign: '#b7950b', kind: 'closed', facade: 'facadeA', balcony: true, awning: 'metal', awningMat: 'awningRed', teralis: true, tank: false }),
-  far({ id: 'F4', x0: -7.72, x1: 0, floors: 2, roof: 'gable', name: 'TOKO SEPATU', sign: '#2c3e50', kind: 'closed', facade: 'facadeB', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: false, tank: true }),
-  far({ id: 'F5', x0: 0, x1: 7.72, floors: 2, roof: 'flat', name: 'KEDAI KOPI', sign: '#6e2c00', kind: 'cafe', facade: 'facadeC', balcony: true, awning: 'fabric', awningMat: 'awningGreen', teralis: false, tank: true }),
-  far({ id: 'F6', x0: 7.72, x1: 15.44, floors: 3, roof: 'gable', name: 'PERCETAKAN', sign: '#16a085', kind: 'kiosk', facade: 'facadeD', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: true, tank: true }),
-  far({ id: 'F7', x0: 15.44, x1: 23.16, floors: 2, roof: 'flat', name: 'TOKO KAIN', sign: '#a93226', kind: 'closed', facade: 'facadeA', balcony: true, awning: 'fabric', awningMat: 'awningRed', teralis: true, tank: false }),
-  far({ id: 'F8', x0: 23.16, x1: 30.88, floors: 2, roof: 'gable', name: 'WARUNG MAKAN', sign: '#27ae60', kind: 'warung', facade: 'facadeC', balcony: false, awning: 'fabric', awningMat: 'awningGreen', teralis: false, tank: true }),
-  far({ id: 'F9', x0: 30.88, x1: 38.6, floors: 3, roof: 'flat', name: 'TOKO MAINAN', sign: '#2e86c1', kind: 'closed', facade: 'facadeD', balcony: true, awning: 'metal', awningMat: 'awningBlue', teralis: false, tank: true }),
+  near({ id: 'S1', x0: -38.6, x1: -31.2, depth: 18, floors: 2, roof: 'gable', name: 'TOKO KELONTONG', sign: '#1f5f99', kind: 'kiosk', facade: 'facadeA', balcony: false, awning: 'fabric', awningMat: 'awningRed', teralis: true, tank: true, style: 'klasik', tagline: 'SEMBAKO · GAS · AIR GALON' }),
+  near({ id: 'S2', x0: -31.2, x1: -23.9, depth: 18, floors: 2, roof: 'flat', name: 'LAUNDRY KILOAN', sign: '#2e8bc0', kind: 'closed', facade: 'facadeB', balcony: true, awning: 'metal', awningMat: 'awningBlue', teralis: false, tank: false, style: 'modern', tagline: 'CUCI · SETRIKA · KILAT' }),
+  near({ id: 'S3', x0: -23.9, x1: -16.6, depth: 31.7, floors: 3, roof: 'flat', name: 'FOTOKOPI & ATK', sign: '#c0392b', kind: 'kiosk', facade: 'facadeC', balcony: true, awning: 'fabric', awningMat: 'awningGreen', teralis: true, tank: true, style: 'modern', tagline: 'PRINT · JILID · LAMINASI' }),
+  near({ id: 'S4', x0: 16.6, x1: 23.9, depth: 31.7, floors: 2, roof: 'gable', name: 'KONTER PULSA', sign: '#e67e22', kind: 'kiosk', facade: 'facadeD', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: true, tank: false, style: 'modern', tagline: 'PULSA · KUOTA · AKSESORIS' }),
+  near({ id: 'S5', x0: 23.9, x1: 31.2, depth: 18, floors: 3, roof: 'flat', name: 'TOKO BANGUNAN', sign: '#7f8c8d', kind: 'hardware', facade: 'facadeA', balcony: true, awning: 'metal', awningMat: 'awningRed', teralis: false, tank: true, style: 'bangunan', tagline: 'SEMEN · CAT · BESI · PIPA' }),
+  near({ id: 'S6', x0: 31.2, x1: 38.6, depth: 18, floors: 2, roof: 'gable', name: 'RUMAH MAKAN PADANG', sign: '#b03a2e', kind: 'warung', facade: 'facadeB', balcony: false, awning: 'fabric', awningMat: 'awningRed', teralis: false, tank: true, style: 'warung', tagline: 'MASAKAN KHAS MINANG' }),
+  far({ id: 'F0', x0: -38.6, x1: -30.88, floors: 2, roof: 'flat', name: 'BENGKEL MOTOR', sign: '#34495e', kind: 'bengkel', facade: 'facadeB', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: true, tank: true, style: 'bengkel', tagline: 'SERVIS · GANTI OLI · TAMBAL BAN' }),
+  far({ id: 'F1', x0: -30.88, x1: -23.16, floors: 3, roof: 'gable', name: 'TOKO ROTI', sign: '#d35400', kind: 'kiosk', facade: 'facadeC', balcony: true, awning: 'fabric', awningMat: 'awningRed', teralis: false, tank: false, style: 'bata', tagline: 'ROTI & KUE SEGAR SETIAP HARI' }),
+  far({ id: 'F2', x0: -23.16, x1: -15.44, floors: 2, roof: 'flat', name: 'SALON', sign: '#8e44ad', kind: 'closed', facade: 'facadeD', balcony: false, awning: 'fabric', awningMat: 'awningGreen', teralis: true, tank: true, style: 'modern', tagline: 'POTONG · CREAMBATH · RIAS' }),
+  far({ id: 'F3', x0: -15.44, x1: -7.72, floors: 3, roof: 'flat', name: 'TOKO EMAS', sign: '#b7950b', kind: 'closed', facade: 'facadeA', balcony: true, awning: 'metal', awningMat: 'awningRed', teralis: true, tank: false, style: 'modern', tagline: 'PERHIASAN EMAS & PERAK' }),
+  far({ id: 'F4', x0: -7.72, x1: 0, floors: 2, roof: 'gable', name: 'TOKO SEPATU', sign: '#2c3e50', kind: 'closed', facade: 'facadeB', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: false, tank: true, style: 'klasik', tagline: 'SEPATU · SANDAL · TAS' }),
+  far({ id: 'F5', x0: 0, x1: 7.72, floors: 2, roof: 'flat', name: 'KEDAI KOPI', sign: '#6e2c00', kind: 'cafe', facade: 'facadeC', balcony: true, awning: 'fabric', awningMat: 'awningGreen', teralis: false, tank: true, style: 'bata', tagline: 'KOPI · TEH · ROTI BAKAR' }),
+  far({ id: 'F6', x0: 7.72, x1: 15.44, floors: 3, roof: 'gable', name: 'PERCETAKAN', sign: '#16a085', kind: 'kiosk', facade: 'facadeD', balcony: false, awning: 'metal', awningMat: 'awningBlue', teralis: true, tank: true, style: 'modern', tagline: 'SPANDUK · STIKER · UNDANGAN' }),
+  far({ id: 'F7', x0: 15.44, x1: 23.16, floors: 2, roof: 'gable', name: 'TOKO PAKAIAN', sign: '#a93226', kind: 'kiosk', facade: 'facadeA', balcony: true, awning: 'fabric', awningMat: 'awningRed', teralis: true, tank: false, style: 'klasik', tagline: 'BUSANA MUSLIM · KAOS · BATIK' }),
+  far({ id: 'F8', x0: 23.16, x1: 30.88, floors: 2, roof: 'gable', name: 'WARUNG MAKAN', sign: '#27ae60', kind: 'warung', facade: 'facadeC', balcony: false, awning: 'fabric', awningMat: 'awningGreen', teralis: false, tank: true, style: 'warung', tagline: 'NASI · LAUK · ES TEH' }),
+  far({ id: 'F9', x0: 30.88, x1: 38.6, floors: 3, roof: 'flat', name: 'TOKO MAINAN', sign: '#2e86c1', kind: 'closed', facade: 'facadeD', balcony: true, awning: 'metal', awningMat: 'awningBlue', teralis: false, tank: true, style: 'klasik', tagline: 'MAINAN ANAK · ALAT TULIS' }),
 ];
+
+/**
+ * Ruko latar di luar gerbang (tak terjangkau, tanpa collider): gaya fasad sama dengan kawasan agar jalan yang
+ * berlanjut tidak tampak sebagai kotak polos. Semua tertutup (pintu harmonika / lipat kayu / rolling door).
+ */
+const BACKDROP_NAMES: [string, string][] = [
+  ['TOKO LISTRIK', 'KABEL · LAMPU · STOP KONTAK'],
+  ['AGEN GAS & AIR', 'ELPIJI · AIR GALON'],
+  ['MEUBEL JATI', 'LEMARI · KURSI · MEJA'],
+  ['TOKO KUE', 'KUE BASAH & KERING'],
+  ['BENGKEL LAS', 'PAGAR · TERALIS · KANOPI'],
+  ['WARUNG KOPI', 'KOPI · MIE · GORENGAN'],
+  ['TOKO PLASTIK', 'EMBER · TOPLES · RAK'],
+  ['JAHIT & PERMAK', 'JAHIT · PERMAK · BORDIR'],
+  ['TOKO BESI', 'BESI · PAKU · KAWAT'],
+  ['SEMBAKO MURAH', 'BERAS · MINYAK · GULA'],
+  ['SERVIS HP', 'SERVIS · AKSESORIS'],
+  ['TOKO KACAMATA', 'KACAMATA · LENSA'],
+  ['PANGKAS RAMBUT', 'CUKUR · KERAMAS'],
+  ['TOKO SEPEDA', 'SEPEDA · ONDERDIL'],
+  ['KONVEKSI', 'KAOS · SERAGAM'],
+  ['TOKO JAM', 'JAM · BATERAI · SERVIS'],
+];
+const BACKDROP_STYLES: ShopStyle[] = ['klasik', 'modern', 'bata', 'klasik', 'modern', 'klasik', 'bata', 'modern'];
+const BACKDROP_COLORS = ['#1f5f99', '#b03a2e', '#16a085', '#8e44ad', '#d35400', '#2c3e50', '#b7950b', '#27ae60'];
+const FACADES_BG: MatKey[] = ['facadeA', 'facadeB', 'facadeC', 'facadeD', 'houseWall'];
+
+export const BACKDROP_SHOPS: Shop[] = [-1, 1].flatMap((side) =>
+  [1, -1].flatMap((row) =>
+    [0, 1, 2, 3].map((k) => {
+      const n = (side > 0 ? 8 : 0) + (row > 0 ? 0 : 4) + k;
+      const a = STREET.gateX + 0.2 + k * 8;
+      const x0 = side > 0 ? a : -a - 7.6;
+      const style = BACKDROP_STYLES[n % BACKDROP_STYLES.length];
+      return {
+        id: `BG${n}`,
+        x0,
+        x1: x0 + 7.6,
+        front: row > 0 ? STREET.frontZ : STREET.farFrontZ,
+        facing: row as 1 | -1,
+        depth: 9,
+        floors: (n % 3 === 1 ? 3 : 2) as 2 | 3,
+        roof: (style === 'klasik' && n % 2 ? 'gable' : 'flat') as 'flat' | 'gable',
+        name: BACKDROP_NAMES[n][0],
+        tagline: BACKDROP_NAMES[n][1],
+        sign: BACKDROP_COLORS[n % BACKDROP_COLORS.length],
+        kind: 'closed' as const,
+        style,
+        facade: FACADES_BG[n % FACADES_BG.length],
+        balcony: n % 2 === 0,
+        awning: 'metal' as const,
+        awningMat: (['awningRed', 'awningBlue', 'awningGreen'] as MatKey[])[n % 3],
+        teralis: n % 3 === 0,
+        tank: n % 2 === 1,
+      };
+    }),
+  ),
+);
 
 export const isOpenShop = (s: Shop) => s.kind !== 'closed';
 
@@ -188,7 +251,8 @@ export const LOADING = {
 };
 
 /** Ukuran mobil boks (lebar × panjang, m) untuk collider saat parkir. */
-export const VAN_SIZE = { w: 1.9, l: 5.0 };
+/** Tapak mobil boks (bak ±0,95 m; panjang termasuk bemper = VEHICLES.van.length). */
+export const VAN_SIZE = { w: 1.9, l: 5.2 };
 
 /** Parkir motor karyawan di gang kanan, tegak lurus tembok ruko S4 (diisi sesuai pegawai yang bekerja). */
 export const STAFF_PARKING: Vec2[] = [
@@ -220,13 +284,14 @@ export const PALLET: AABB = { minX: -16.45, maxX: -15.65, minZ: -7.5, maxZ: -6.3
 const box = (minX: number, maxX: number, minZ: number, maxZ: number): AABB => ({ minX, maxX, minZ, maxZ });
 
 /** Tapak motor parkir yang menghadap −Z (tegak lurus muka ruko). */
+/** Tapak motor parkir (sejajar sumbu Z): panjang ±0,95 m; lebar ±0,35 m mencakup ujung setang & spion. */
 export function scooterFootprint([x, z]: Vec2): AABB {
-  return box(x - 0.22, x + 0.22, z - 0.95, z + 0.95);
+  return box(x - 0.35, x + 0.35, z - 0.95, z + 0.95);
 }
 
 /** Tapak motor parkir yang tegak lurus tembok gang (sejajar sumbu X). */
 export function scooterFootprintX([x, z]: Vec2): AABB {
-  return box(x - 0.95, x + 0.95, z - 0.22, z + 0.22);
+  return box(x - 0.95, x + 0.95, z - 0.35, z + 0.35);
 }
 
 export function vanParkedFootprint(): AABB {

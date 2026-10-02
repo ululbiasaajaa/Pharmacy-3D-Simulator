@@ -202,5 +202,73 @@
       "512": 121428,
       "1024": 375788
     }
+  },
+  "brick": {
+    "source": "ambientCG",
+    "id": "Bricks101",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Bricks101",
+    "meters": 1.6,
+    "use": "Bata ekspos fasad ruko",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 147490,
+      "1024": 526142
+    }
+  },
+  "stone": {
+    "source": "ambientCG",
+    "id": "Tiles143",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Tiles143",
+    "meters": 1.8,
+    "use": "Batu alam tempel (fasad ruko)",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 49024,
+      "1024": 189404
+    }
+  },
+  "corrugated": {
+    "source": "ambientCG",
+    "id": "CorrugatedSteel005",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/CorrugatedSteel005",
+    "meters": 2,
+    "use": "Seng gelombang atap & kanopi",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": true,
+    "bytes": {
+      "512": 94186,
+      "1024": 338326
+    }
+  },
+  "planks": {
+    "source": "ambientCG",
+    "id": "Planks037A",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Planks037A",
+    "meters": 1.6,
+    "use": "Papan kayu pintu lipat & warung",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": true,
+    "bytes": {
+      "512": 83384,
+      "1024": 299444
+    }
   }
 }

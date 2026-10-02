@@ -9,6 +9,10 @@ export interface SignDef {
   height: number;
   background: string;
   color?: string;
+  /** Baris kedua yang lebih kecil (mis. layanan toko); papan otomatis dibagi dua baris. */
+  sub?: string;
+  /** Pengali kerapatan piksel (papan jauh: < 1 untuk menghemat memori tekstur). */
+  density?: number;
   /** Ukuran huruf maksimum relatif tinggi papan (0..1); diperkecil otomatis bila teks terlalu lebar. */
   fontScale?: number;
   position: [number, number, number];
@@ -46,8 +50,9 @@ function drawSign(ctx: CanvasRenderingContext2D, x: number, y: number, W: number
   ctx.beginPath();
   roundRect(ctx, lw, lw, W - lw * 2, H - lw * 2, Math.max(1, r - lw));
   ctx.stroke();
-  let size = Math.round(H * (s.fontScale ?? 0.56));
-  const font = (px: number) => `700 ${px}px "Segoe UI", system-ui, sans-serif`;
+  const two = !!s.sub && H > 60;
+  let size = Math.round(H * (two ? 0.42 : (s.fontScale ?? 0.56)));
+  const font = (px: number, weight = 700) => `${weight} ${px}px "Segoe UI", system-ui, sans-serif`;
   ctx.font = font(size);
   while (ctx.measureText(s.text).width > W * 0.88 && size > 10) {
     size -= 2;
@@ -59,7 +64,21 @@ function drawSign(ctx: CanvasRenderingContext2D, x: number, y: number, W: number
   ctx.shadowColor = 'rgba(0,0,0,0.25)';
   ctx.shadowBlur = size * 0.08;
   ctx.shadowOffsetY = size * 0.03;
-  ctx.fillText(s.text, W / 2, H / 2 + size * 0.04);
+  ctx.fillText(s.text, W / 2, (two ? H * 0.38 : H / 2) + size * 0.04);
+  if (two && s.sub) {
+    // Pita bawah sedikit lebih gelap + baris layanan.
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(lw * 2, H * 0.7, W - lw * 4, H * 0.24);
+    let sub = Math.round(H * 0.17);
+    ctx.font = font(sub, 600);
+    while (ctx.measureText(s.sub).width > W * 0.86 && sub > 8) {
+      sub -= 1;
+      ctx.font = font(sub, 600);
+    }
+    ctx.fillStyle = s.color ?? '#ffffff';
+    ctx.fillText(s.sub, W / 2, H * 0.82);
+  }
   ctx.restore();
 }
 
@@ -70,7 +89,7 @@ function drawSign(ctx: CanvasRenderingContext2D, x: number, y: number, W: number
 export function SignAtlas({ signs }: { signs: SignDef[] }) {
   const { geometry, material } = useMemo(() => {
     // Pengepakan baris (shelf packing): papan tertinggi lebih dulu.
-    const sizes = signs.map((s) => ({ w: Math.min(ATLAS_W - PAD * 2, Math.round(s.width * PX)), h: Math.round(s.height * PX) }));
+    const sizes = signs.map((s) => ({ w: Math.min(ATLAS_W - PAD * 2, Math.round(s.width * PX * (s.density ?? 1))), h: Math.round(s.height * PX * (s.density ?? 1)) }));
     const order = sizes.map((_, i) => i).sort((a, b) => sizes[b].h - sizes[a].h);
     const rects: { x: number; y: number; w: number; h: number }[] = [];
     let x = PAD;

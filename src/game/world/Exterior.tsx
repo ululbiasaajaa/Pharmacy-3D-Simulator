@@ -11,12 +11,14 @@ import { drawLeafAtlas, ketapangTree, scooterModel } from './streetModels';
 import { Prop } from './SetDressing';
 import { CanvasPlane } from './posters';
 import { SignAtlas, type SignDef } from './SignAtlas';
-import { DeliveryVan, StaffScooters, Traffic } from './DistrictVehicles';
+import { alleyWalls, goodsAtlasTexture, shopModel, shopSign } from './shopModels';
+import { DeliveryVan, StaffScooters, Traffic, VehicleShowroom, showroomEnabled } from './DistrictVehicles';
 import { Interactable } from '@/game/objects/Interactable';
 import { Pedestrians } from '@/game/npc/Pedestrians';
 import { vehicles } from '@/game/npc/crowd';
 import { TIME } from '@/domain/config';
 import {
+  BACKDROP_SHOPS,
   BACK_PIPES,
   BINS,
   CAFE_SET,
@@ -37,9 +39,7 @@ import {
   STREET,
   STREET_LAMPS,
   TREES,
-  isOpenShop,
   type Gate,
-  type Shop,
 } from './district';
 
 /**
@@ -52,268 +52,6 @@ type B = GeoBuilder<MatKey>;
 
 /** Panjang jalan yang dirender (melewati gerbang sebagai latar). */
 const ROAD_X = 70;
-const KIOSK_DEPTH = 2.6;
-
-// ------------------------------------------------------------------ Ruko
-
-/** Tinggi bangunan dari jumlah lantai (lantai dasar 3,6 m, lantai atas 3,2 m). */
-const shopHeight = (s: Shop) => 3.6 + (s.floors - 1) * 3.2;
-
-/** Interior kios (ceruk 2,6 m): lantai, dinding, plafon berlampu, rak barang, dan meja/etalase di garis muka. */
-function kioskInterior(b: B, s: Shop, cx: number, openW: number) {
-  const f = s.facing;
-  const zF = s.front;
-  const zMid = zF - (f * KIOSK_DEPTH) / 2;
-  const zBack = zF - f * KIOSK_DEPTH;
-  b.add('terrace', floorQuad(cx - openW / 2, cx + openW / 2, Math.min(zF, zBack), Math.max(zF, zBack), 0.012));
-  b.box('kioskWall', openW, 3.4, 0.1, cx, 1.7, zBack + f * 0.05, { r: 0 });
-  for (const sx of [-1, 1]) b.box('kioskWall', 0.1, 3.4, KIOSK_DEPTH, cx + sx * (openW / 2 - 0.05), 1.7, zMid, { r: 0 });
-  b.box('kioskWall', openW, 0.08, KIOSK_DEPTH, cx, 3.42, zMid, { r: 0 });
-  b.box('kioskLight', Math.min(2.4, openW * 0.4), 0.03, 0.5, cx, 3.37, zMid, { r: 0 });
-  const counterZ = zF - f * 0.3;
-  if (s.kind === 'bengkel') {
-    // Bengkel: tumpukan ban di garis muka sebagai pembatas, motor yang sedang diservis, lemari alat & meja kerja.
-    const n = Math.floor((openW - 0.4) / 0.62);
-    for (let k = 0; k < n; k++) for (let t = 0; t < 3; t++) b.add('tire', new THREE.TorusGeometry(0.26, 0.09, 6, 12), cx - openW / 2 + 0.5 + k * 0.62, 0.09 + t * 0.18, counterZ, { rotX: Math.PI / 2 });
-    scooterModel(b, cx - 0.4, zMid - f * 0.15, Math.PI / 2, 'bikeBlue');
-    b.box('awningRed', 1.0, 1.4, 0.5, cx + openW / 2 - 0.75, 0.7, zBack + f * 0.32, { r: 0.02 });
-    b.box('metalDark', 2.2, 0.85, 0.55, cx - openW / 2 + 1.4, 0.43, zBack + f * 0.35, { r: 0.01 });
-    return;
-  }
-  // Rak dinding belakang berisi barang (kemasan generik berwarna).
-  const goods: MatKey[] = s.kind === 'hardware' ? ['cardboard', 'zinc', 'paintYellow', 'awningRed'] : ['awningRed', 'awningBlue', 'awningGreen', 'paintYellow', 'white', 'cardboard'];
-  for (let lv = 0; lv < 4; lv++) {
-    const y = 0.55 + lv * 0.62;
-    b.box('woodDark', openW - 0.5, 0.03, 0.4, cx, y, zBack + f * 0.3, { r: 0 });
-    const n = Math.floor((openW - 0.6) / 0.24);
-    for (let k = 0; k < n; k++) {
-      const h = 0.18 + ((k * 7 + lv * 3) % 5) * 0.04;
-      b.box(goods[(k + lv * 2) % goods.length], 0.18, h, 0.22, cx - (openW - 0.6) / 2 + 0.12 + k * 0.24, y + 0.015 + h / 2, zBack + f * 0.3, { r: 0 });
-    }
-  }
-  if (s.kind === 'warung') {
-    // Etalase kaca berisi piring lauk (rumah makan / warung) di sepanjang garis muka.
-    b.box('white', openW - 0.2, 0.8, 0.6, cx, 0.4, counterZ, { r: 0.01 });
-    b.box('glass', openW - 0.2, 0.55, 0.6, cx, 1.08, counterZ, { r: 0 });
-    const plates: MatKey[] = ['awningRed', 'paintYellow', 'awningGreen', 'cardboard'];
-    for (let k = 0; k < Math.floor((openW - 0.4) / 0.32); k++) {
-      for (const [j, y] of [0.86, 1.14].entries()) b.cylinder(plates[(k + j) % plates.length], 0.12, 0.12, 0.04, cx - (openW - 0.6) / 2 + k * 0.32, y, counterZ, { seg: 14 });
-    }
-    return;
-  }
-  // Meja kios / kasir di garis muka.
-  b.box('woodDark', openW - 0.2, 1.0, 0.55, cx, 0.5, counterZ, { r: 0.01 });
-  b.box('counterTop', openW - 0.1, 0.04, 0.62, cx, 1.02, counterZ, { r: 0.008 });
-  if (s.kind === 'cafe') {
-    b.box('steel', 0.45, 0.45, 0.4, cx - 0.8, 1.27, counterZ, { r: 0.03 });
-    b.box('black', 0.3, 0.12, 0.25, cx + 0.6, 1.1, counterZ, { r: 0.02 });
-  } else {
-    b.box('black', 0.32, 0.22, 0.04, cx + openW / 4, 1.16, counterZ, { r: 0.01, rotX: -0.3 });
-  }
-  if (s.kind === 'hardware') for (let k = 0; k < 5; k++) b.box('cardboard', 0.5, 0.18, 0.36, cx - openW / 2 + 0.5 + k * 0.55, 0.09 + (k % 2) * 0.18, zMid, { r: 0.01 });
-}
-
-/**
- * Isi khas tiap kios (dibaca dari luar): renteng sachet & tabung gas 3 kg di kelontong, mesin fotokopi & rim kertas,
- * etalase ponsel di konter pulsa, kaleng cat & pipa di toko bangunan, roti, printer besar & gulungan kertas,
- * papan menu kedai kopi. Semua memakai material yang sudah ada (tanpa draw call tambahan).
- */
-function kioskExtras(b: B, s: Shop, cx: number, openW: number) {
-  const f = s.facing;
-  const zF = s.front;
-  const zMid = zF - f * 1.35;
-  const zBack = zF - f * KIOSK_DEPTH;
-  const counterTopY = 1.04;
-  const right = cx + openW / 2;
-  const left = cx - openW / 2;
-  switch (s.id) {
-    case 'S1': {
-      // Renteng sachet kopi/sampo bergantung di atas meja + tabung gas 3 kg ("melon") di sisi kanan.
-      const cols: MatKey[] = ['awningRed', 'paintYellow', 'awningBlue', 'white', 'awningGreen'];
-      for (let k = 0; k < 9; k++) b.box(cols[k % cols.length], 0.11, 0.85, 0.008, left + 0.6 + k * ((openW - 1.2) / 8), 2.45, zF - f * 0.7, { r: 0 });
-      b.box('metalDark', openW - 1.0, 0.02, 0.02, cx, 2.88, zF - f * 0.7, { r: 0 });
-      for (let k = 0; k < 3; k++) {
-        const x = right - 0.35 - (k % 2) * 0.34;
-        const z = zMid - f * (k === 2 ? 0.34 : 0);
-        b.cylinder('awningGreen', 0.15, 0.15, 0.34, x, 0.2, z, { seg: 14 });
-        b.cylinder('metalDark', 0.05, 0.05, 0.08, x, 0.41, z, { seg: 8 });
-      }
-      break;
-    }
-    case 'S3': {
-      // Mesin fotokopi + rim kertas di meja.
-      const x = right - 0.75;
-      b.box('plasticWhite', 0.9, 0.95, 0.65, x, 0.475, zMid, { r: 0 });
-      b.box('metalDark', 0.86, 0.06, 0.6, x, 0.98, zMid, { r: 0 });
-      b.box('black', 0.3, 0.05, 0.14, x + 0.22, 1.02, zMid + f * 0.2, { r: 0, rotX: -f * 0.3 });
-      b.box('white', 0.5, 0.08, 0.3, x - 0.6, 0.6, zMid, { r: 0 });
-      for (let k = 0; k < 4; k++) b.box(k % 2 ? 'white' : 'paintYellow', 0.3, 0.06, 0.21, left + 0.6 + (k % 2) * 0.34, counterTopY + 0.03 + Math.floor(k / 2) * 0.06, zF - f * 0.3, { r: 0 });
-      break;
-    }
-    case 'S4': {
-      // Etalase kaca berisi ponsel di atas meja + spanduk promo di dinding belakang.
-      b.box('glass', 1.4, 0.32, 0.42, cx - 0.8, counterTopY + 0.16, zF - f * 0.3, { r: 0 });
-      for (let k = 0; k < 8; k++) b.box('black', 0.07, 0.14, 0.012, cx - 1.38 + k * 0.165, counterTopY + 0.11, zF - f * 0.3, { r: 0, rotX: -f * 0.35 });
-      b.box('awningRed', 1.3, 0.5, 0.01, cx - 0.9, 3.0, zBack + f * 0.06, { r: 0 });
-      b.box('paintYellow', 1.3, 0.5, 0.01, cx + 0.9, 3.0, zBack + f * 0.06, { r: 0 });
-      break;
-    }
-    case 'S5': {
-      // Kaleng cat bertumpuk & pipa PVC bersandar di dinding samping.
-      const cans: MatKey[] = ['paintYellow', 'white', 'awningBlue', 'awningRed'];
-      for (let k = 0; k < 8; k++) b.cylinder(cans[k % 4], 0.11, 0.11, 0.2, left + 0.35 + (k % 4) * 0.25, 0.1 + Math.floor(k / 4) * 0.21, zMid + f * 0.1, { seg: 12 });
-      for (let k = 0; k < 5; k++) b.cylinder('plasticWhite', 0.04, 0.04, 2.6, right - 0.2 - k * 0.09, 1.3, zMid - f * 0.2, { rotZ: 0.12, seg: 8 });
-      break;
-    }
-    case 'F1': {
-      // Roti di rak & etalase kaca roti di meja.
-      for (let lv = 0; lv < 3; lv++) for (let k = 0; k < 12; k++) b.sphere('cardboard', 0.09, left + 0.5 + k * ((openW - 1.0) / 11), 0.62 + lv * 0.62, zBack + f * 0.3, { sx: 1.4, sy: 0.75, sz: 1, seg: 8 });
-      b.box('glass', openW - 1.2, 0.4, 0.45, cx, counterTopY + 0.2, zF - f * 0.3, { r: 0 });
-      for (let k = 0; k < 10; k++) b.sphere('cardboard', 0.07, cx - (openW - 1.6) / 2 + k * ((openW - 1.6) / 9), counterTopY + 0.07, zF - f * 0.3, { sx: 1.5, sy: 0.8, seg: 8 });
-      break;
-    }
-    case 'F6': {
-      // Printer format besar & gulungan kertas.
-      b.box('plasticWhite', 1.9, 0.5, 0.62, cx - 0.4, 0.95, zMid, { r: 0 });
-      for (const sx of [-0.8, 0.8]) b.box('metalDark', 0.06, 0.7, 0.5, cx - 0.4 + sx, 0.35, zMid, { r: 0 });
-      b.box('black', 1.7, 0.06, 0.1, cx - 0.4, 1.0, zMid + f * 0.32, { r: 0 });
-      for (let k = 0; k < 4; k++) b.cylinder('white', 0.08, 0.08, 1.1, right - 0.3, 0.55 + k * 0.17, zMid - f * 0.25, { rotZ: Math.PI / 2 - 0.2, seg: 10 });
-      break;
-    }
-    case 'F5': {
-      // Papan menu di dinding belakang (baris tulisan sebagai garis).
-      b.box('black', 1.6, 0.9, 0.03, cx, 2.6, zBack + f * 0.07, { r: 0 });
-      for (let k = 0; k < 5; k++) b.box('white', 0.9 - (k % 2) * 0.25, 0.035, 0.005, cx - 0.2, 2.92 - k * 0.14, zBack + f * 0.09, { r: 0 });
-      for (let k = 0; k < 5; k++) b.box('paintYellow', 0.18, 0.035, 0.005, cx + 0.55, 2.92 - k * 0.14, zBack + f * 0.09, { r: 0 });
-      break;
-    }
-  }
-}
-
-/** Jendela lantai atas: kusen, kaca (sebagian menyala malam), ambang, teralis opsional. */
-function upperWindows(b: B, s: Shop, i: number, y: number) {
-  const f = s.facing;
-  const z = s.front;
-  const w = s.x1 - s.x0;
-  const n = Math.max(2, Math.round(w / 2.4));
-  for (let k = 0; k < n; k++) {
-    const x = s.x0 + (w / n) * (k + 0.5);
-    b.box('aluminum', 1.4, 1.45, 0.06, x, y, z + f * 0.01, { r: 0.004 });
-    b.box((k + i + Math.round(y)) % 3 === 0 ? 'windowLit' : 'glassDark', 1.3, 1.35, 0.02, x, y, z + f * 0.04, { r: 0 });
-    b.box(s.facade, 1.55, 0.08, 0.16, x, y - 0.78, z + f * 0.06, { r: 0.006 });
-    if (s.teralis) for (let t = -2; t <= 2; t++) b.box('metalDark', 0.018, 1.35, 0.018, x + t * 0.26, y, z + f * 0.09, { r: 0 });
-  }
-}
-
-/**
- * Unit AC luar ruko (latar, dilihat dari jauh): model sederhana yang digabung ke mesh kawasan — bodi, kisi kipas,
- * ventilasi samping, braket, pipa ke dinding. Unit AC dekat pemain (apotek) memakai model GLB detail.
- * Diletakkan di antara jendela pertama & kedua lantai 2 (tidak menutupi papan nama).
- */
-function shopAcUnit(b: B, s: Shop) {
-  const f = s.facing;
-  const cx = s.x0 + (s.x1 - s.x0) / 3;
-  const y = 5.3;
-  const z = s.front;
-  b.box('plasticWhite', 0.8, 0.58, 0.28, cx, y, z + f * 0.15, { r: 0 });
-  b.cylinder('metalDark', 0.2, 0.2, 0.012, cx - 0.1, y, z + f * 0.295, { rotX: Math.PI / 2, seg: 16 });
-  b.cylinder('plasticWhite', 0.05, 0.05, 0.016, cx - 0.1, y, z + f * 0.3, { rotX: Math.PI / 2, seg: 8 });
-  for (let k = -2; k <= 2; k++) b.box('metalDark', 0.012, 0.42, 0.008, cx + 0.22 + k * 0.03, y, z + f * 0.292, { r: 0 });
-  for (const sx of [-1, 1]) b.box('metalDark', 0.04, 0.04, 0.34, cx + sx * 0.3, y - 0.31, z + f * 0.17, { r: 0 });
-  b.box('plasticWhite', 0.05, 0.05, 0.3, cx + 0.43, y - 0.18, z + f * 0.15, { r: 0 });
-}
-
-function shopModel(b: B, s: Shop, i: number) {
-  const w = s.x1 - s.x0;
-  const cx = (s.x0 + s.x1) / 2;
-  const f = s.facing;
-  const zF = s.front;
-  const H = shopHeight(s);
-  const open = isOpenShop(s);
-  const openW = w - 1.0;
-  const recess = open ? KIOSK_DEPTH : 0;
-  // Massa: lantai atas penuh; lantai dasar di belakang ceruk kios; pilar samping di depan.
-  b.box(s.facade, w, H - 3.6, s.depth, cx, 3.6 + (H - 3.6) / 2, zF - (f * s.depth) / 2, { r: 0 });
-  b.box(s.facade, w, 3.6, s.depth - recess, cx, 1.8, zF - f * (recess + (s.depth - recess) / 2), { r: 0 });
-  if (open) for (const sx of [-1, 1]) b.box(s.facade, 0.5, 3.6, recess, cx + sx * (w / 2 - 0.25), 1.8, zF - (f * recess) / 2, { r: 0 });
-  else b.box('shutter', openW, 2.9, 0.06, cx, 1.45, zF + f * 0.03, { r: 0 });
-  // Pilaster ujung (dinding bersama) & lis lantai.
-  for (const px of [s.x0 + 0.15, s.x1 - 0.15]) b.box(s.facade, 0.3, H, 0.22, px, H / 2, zF + f * 0.09, { r: 0.01 });
-  b.box(s.facade, w, 0.22, 0.3, cx, 3.6, zF + f * 0.12, { r: 0.01 });
-  // Kotak rolling door (tergulung bila toko buka).
-  b.box('metalDark', openW + 0.2, 0.32, 0.3, cx, 3.06, zF + f * 0.15, { r: 0.01 });
-  if (open) {
-    kioskInterior(b, s, cx, openW);
-    kioskExtras(b, s, cx, openW);
-  }
-  // Kanopi: kain miring atau seng datar bertopang.
-  if (s.awning === 'fabric') {
-    b.box(s.awningMat, w - 0.4, 0.04, 1.3, cx, 3.35, zF + f * 0.62, { rotX: f * 0.32, r: 0 });
-  } else {
-    b.box('zinc', w - 0.3, 0.05, 1.15, cx, 3.32, zF + f * 0.58, { r: 0.004 });
-    for (const sx of [-1, 1]) b.box('metalDark', 0.04, 0.04, 1.2, cx + sx * (w / 2 - 0.5), 3.08, zF + f * 0.55, { rotX: f * -0.45, r: 0 });
-  }
-  // Rangka papan nama (teks di SignAtlas).
-  b.box('metalDark', w * 0.82, 0.86, 0.08, cx, 4.15, zF + f * 0.05, { r: 0.02 });
-  // Lantai atas: balkon (lantai 2) & jendela.
-  if (s.balcony) {
-    const bw = w - 1.0;
-    const posts = Math.round(bw / 0.6);
-    b.box(s.facade, bw, 0.14, 0.95, cx, 4.75, zF + f * 0.47, { r: 0.01 });
-    for (let k = 0; k <= posts; k++) b.box('metalDark', 0.025, 0.9, 0.025, cx - bw / 2 + (k * bw) / posts, 5.27, zF + f * 0.92, { r: 0 });
-    b.box('metalDark', bw, 0.04, 0.05, cx, 5.72, zF + f * 0.92, { r: 0 });
-  }
-  for (let fl = 1; fl < s.floors; fl++) upperWindows(b, s, i, 3.6 + (fl - 1) * 3.2 + 1.75 + (fl === 1 ? 0.4 : 0));
-  if (i % 3 === 0) shopAcUnit(b, s);
-  // Atap: parapet datar atau pelana genteng menghadap jalan (dengan dinding pelana depan & belakang).
-  if (s.roof === 'flat') {
-    b.box(s.facade, w + 0.06, 0.9, 0.24, cx, H + 0.45, zF + f * 0.05, { r: 0.01 });
-    b.box(s.facade, w + 0.1, 0.08, 0.32, cx, H + 0.94, zF + f * 0.05, { r: 0.004 });
-  } else {
-    const rise = 2.2;
-    const shape = new THREE.Shape([new THREE.Vector2(-w / 2, 0), new THREE.Vector2(w / 2, 0), new THREE.Vector2(0, rise)]);
-    const gable = new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: false });
-    b.add(s.facade, gable, cx, H, f > 0 ? zF - 0.2 : zF);
-    b.add(s.facade, gable, cx, H, f > 0 ? zF - s.depth : zF + s.depth - 0.2);
-    const slope = Math.atan2(rise, w / 2);
-    const len = Math.hypot(w / 2, rise) + 0.25;
-    for (const sx of [-1, 1]) b.box('roofTile', len, 0.08, s.depth + 0.5, cx + (sx * w) / 4, H + rise / 2 + 0.05, zF - (f * s.depth) / 2 + f * 0.25, { rotZ: -sx * slope, r: 0 });
-  }
-  // Toren air di atap (khas rumah & ruko Indonesia).
-  if (s.tank) {
-    const tx = s.x1 - 1.4;
-    const tz = zF - f * 3.2;
-    const ty = s.roof === 'flat' ? H : H + 0.4;
-    for (const [dx, dz] of [
-      [-0.45, -0.45],
-      [0.45, -0.45],
-      [-0.45, 0.45],
-      [0.45, 0.45],
-    ])
-      b.box('metalDark', 0.05, 1.2, 0.05, tx + dx, ty + 0.6, tz + dz, { r: 0 });
-    b.box('metalDark', 1.05, 0.06, 1.05, tx, ty + 1.2, tz, { r: 0 });
-    b.cylinder(i % 2 ? 'tankOrange' : 'tankBlue', 0.5, 0.52, 1.3, tx, ty + 1.88, tz, { seg: 20 });
-  }
-  // Teras keramik di depan ruko.
-  b.add('terrace', floorQuad(s.x0, s.x1, f > 0 ? zF : zF - 1.0, f > 0 ? zF + 1.0 : zF, 0.016));
-}
-
-/** Dinding samping ruko pengapit gang (S3/S4): jendela lantai atas agar gang tidak berupa tembok polos. */
-function alleyWalls(b: B) {
-  for (const s of SHOPS) {
-    if (s.facing !== 1 || s.depth < 30) continue;
-    const side = Math.abs(s.x1 + STREET.alleyOuter) < 0.01 ? 1 : -1;
-    const x = side > 0 ? s.x1 : s.x0;
-    for (let fl = 1; fl < s.floors; fl++) {
-      const y = 3.6 + (fl - 1) * 3.2 + 1.75 + (fl === 1 ? 0.4 : 0);
-      for (let z = 6; z > s.front - s.depth + 2; z -= 4.5) {
-        b.box('aluminum', 0.06, 1.45, 1.4, x + side * 0.01, y, z, { r: 0.004 });
-        b.box((Math.round(z) + fl) % 3 === 0 ? 'windowLit' : 'glassDark', 0.02, 1.35, 1.3, x + side * 0.04, y, z, { r: 0 });
-        b.box(s.facade, 0.16, 0.08, 1.55, x + side * 0.06, y - 0.78, z, { r: 0.006 });
-      }
-    }
-  }
-}
 
 /** Lantai atas apotek dilihat dari gang: jendela di sisi samping & belakang (lantai atas bukan area permainan). */
 function pharmacyUpperWindows(b: B) {
@@ -482,21 +220,9 @@ function backLaneModel(b: B) {
 
 /** Latar di luar gerbang: jalan berlanjut dengan deretan bangunan sederhana & pohon (tanpa collider). */
 function backdropModel(b: B, full: boolean) {
-  const facades: MatKey[] = ['facadeA', 'facadeB', 'facadeC', 'facadeD', 'houseWall'];
-  for (const side of [-1, 1]) {
-    for (let k = 0; k < 4; k++) {
-      const x0 = side * (STREET.gateX + 0.2 + k * 8);
-      const cx = x0 + side * 3.8;
-      for (const row of [1, -1] as const) {
-        const zF = row === 1 ? STREET.frontZ : STREET.farFrontZ;
-        const h = 6.6 + ((k + (row > 0 ? 0 : 1)) % 3) * 1.8;
-        b.box(facades[(k + (row > 0 ? 0 : 2)) % facades.length], 7.6, h, 9, cx, h / 2, zF - row * 4.5, { r: 0 });
-        b.box('shutter', 6.4, 2.8, 0.05, cx, 1.4, zF + row * 0.03, { r: 0 });
-        for (let w = 0; w < 3; w++) b.box(w % 2 ? 'glassDark' : 'windowLit', 1.3, 1.2, 0.04, cx - 2.4 + w * 2.4, 5.2, zF + row * 0.03, { r: 0 });
-      }
-    }
-    if (full) for (const x of [side * 46, side * 58]) ketapangTree(b, x, STREET.nearFurnitureZ, Math.abs(x), 1);
-  }
+  // Ruko latar bergaya sama dengan kawasan (tertutup, tanpa interior), indeks bergeser agar AC/toren bervariasi.
+  BACKDROP_SHOPS.forEach((s, i) => shopModel(b, s, i + 1, 1));
+  for (const side of [-1, 1]) if (full) for (const x of [side * 46, side * 58]) ketapangTree(b, x, STREET.nearFurnitureZ, Math.abs(x), 1);
 }
 
 // ------------------------------------------------------------------ Properti jalan
@@ -578,7 +304,17 @@ function buildDistrict(full: boolean) {
  * Material luar ruangan: pantulan IBL (yang dibuat untuk interior) diredam saat malam
  * agar fasad & jalan gelap, sementara interior tetap terang oleh lampunya sendiri.
  */
-const OUTDOOR: MatKey[] = ['facade', 'facadeA', 'facadeB', 'facadeC', 'facadeD', 'facadeAccent', 'sidewalk', 'road', 'concrete', 'ground', 'curbWhite', 'curbBlack', 'roadPaint', 'terrace', 'stone', 'shutter', 'awningRed', 'awningBlue', 'awningGreen', 'glassDark', 'trunk', 'treeLeaf', 'treeLeafLight', 'leafCard', 'tactile', 'tire', 'bikeRed', 'bikeBlack', 'bikeWhite', 'bikeBlue', 'roofTile', 'zinc', 'tankBlue', 'tankOrange', 'paintYellow', 'houseWall', 'kioskWall', 'carPaint'];
+const OUTDOOR: MatKey[] = ['facade', 'facadeA', 'facadeB', 'facadeC', 'facadeD', 'facadeAccent', 'sidewalk', 'road', 'concrete', 'ground', 'curbWhite', 'curbBlack', 'roadPaint', 'terrace', 'stone', 'shutter', 'awningRed', 'awningBlue', 'awningGreen', 'glassDark', 'trunk', 'treeLeaf', 'treeLeafLight', 'leafCard', 'tactile', 'tire', 'bikeRed', 'bikeBlack', 'bikeWhite', 'bikeBlue', 'roofTile', 'zinc', 'tankBlue', 'tankOrange', 'paintYellow', 'houseWall', 'kioskWall', 'carPaint', 'vanPaint', 'carGlass', 'carTrim', 'tireRubber', 'rimAlloy', 'brickWall', 'stoneClad', 'zincSheet', 'woodPlank', 'ceramicWall'];
+
+/**
+ * Urutan gambar kawasan: permukaan latar besar (tanah, jalan, trotoar, lantai gang, dinding fasad) digambar
+ * setelah detail di depannya, tanah paling akhir — fragmen yang tertutup ditolak uji kedalaman sebelum
+ * di-shade. Diukur di Iris Xe (A/B dalam satu halaman, 10 pengukuran): hemat 0,05–0,7 ms per frame.
+ */
+const LATE_DRAW: Partial<Record<MatKey, number>> = { ground: 2, road: 1, sidewalk: 1, concrete: 1, facade: 1, facadeA: 1, facadeB: 1, facadeC: 1, facadeD: 1 };
+
+/** Pengali pantulan lingkungan per material luar (kaca & cat kendaraan lebih memantul). */
+const ENV_BOOST: Partial<Record<MatKey, number>> = { carGlass: 2.4, carPaint: 1.35, vanPaint: 1.2, rimAlloy: 1.4 };
 
 /** Intensitas emisif mengikuti siang/malam: jendela, lampu jalan, downlight kanopi, tanda plus, lampu kios. */
 function NightMaterials() {
@@ -593,13 +329,16 @@ function NightMaterials() {
         m.envMap = tex;
         m.needsUpdate = true;
       }
-      m.envMapIntensity = env;
+      m.envMapIntensity = env * (ENV_BOOST[k] ?? 1);
     }
     MAT.windowLit.emissiveIntensity = 0.04 + n * 1.2;
     MAT.lampGlow.emissiveIntensity = 0.1 + n * 2.6;
     MAT.emissiveWarm.emissiveIntensity = 0.6 + n * 1.4;
     MAT.signGreen.emissiveIntensity = 0.9 + n * 0.9;
     (MAT.kioskLight as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + n * 1.2;
+    // Lampu kendaraan menyala saat gelap (lampu depan & belakang).
+    MAT.carLamp.emissiveIntensity = 0.12 + n * 2.4;
+    MAT.ledRed.emissiveIntensity = 0.6 + n * 1.2;
   });
   return null;
 }
@@ -609,14 +348,20 @@ const LAMPS: [number, number, number][] = STREET_LAMPS.map(([x, z, f]) => [x, 5.
 
 /** Papan nama statis kawasan (satu atlas, satu draw call). */
 const DISTRICT_SIGNS: SignDef[] = [
-  ...SHOPS.map<SignDef>((s) => ({
-    text: s.name,
-    width: (s.x1 - s.x0) * 0.78,
-    height: 0.72,
-    background: s.sign,
-    position: [(s.x0 + s.x1) / 2, 4.15, s.front + s.facing * 0.1],
-    rotationY: s.facing === 1 ? 0 : Math.PI,
-  })),
+  ...[...SHOPS, ...BACKDROP_SHOPS].map<SignDef>((s) => {
+    const p = shopSign(s);
+    return {
+      text: s.name,
+      sub: s.tagline,
+      // Ruko latar (di luar gerbang, selalu jauh) cukup setengah resolusi.
+      density: s.id.startsWith('BG') ? 0.5 : 1,
+      width: p.width,
+      height: p.height,
+      background: s.sign,
+      position: [(s.x0 + s.x1) / 2, p.y, p.z],
+      rotationY: s.facing === 1 ? 0 : Math.PI,
+    };
+  }),
   ...GATES.flatMap<SignDef>((g) => [
     { text: 'KAWASAN RUKO MELATI', width: 6.2, height: 0.7, background: '#0e655b', position: [g.x + g.inward * 0.26, 5.25, 18.5], rotationY: g.inward * (Math.PI / 2) },
     { text: 'KAWASAN RUKO MELATI', width: 6.2, height: 0.7, background: '#0e655b', position: [g.x - g.inward * 0.26, 5.25, 18.5], rotationY: -g.inward * (Math.PI / 2) },
@@ -772,6 +517,14 @@ export function Exterior() {
   const full = profile.quality !== 'low';
   const parts = useMemo(() => buildDistrict(full), [full]);
   useMemo(() => {
+    // Atlas kemasan/kain/poster/lauk untuk isi kios (sekali, material bersama).
+    if (MAT.goodsAtlas.map) return;
+    const t = goodsAtlasTexture();
+    if (!t) return;
+    MAT.goodsAtlas.map = t;
+    MAT.goodsAtlas.needsUpdate = true;
+  }, []);
+  useMemo(() => {
     // Atlas daun dibuat sekali (kanvas) dan dipasang ke material bersama.
     if (MAT.leafCard.map) return;
     const canvas = drawLeafAtlas();
@@ -784,7 +537,7 @@ export function Exterior() {
   }, []);
   return (
     <group>
-      <BuiltMeshes parts={parts} castShadow={profile.sunShadows} />
+      <BuiltMeshes parts={parts} castShadow={profile.sunShadows} renderOrder={LATE_DRAW} />
       <NightMaterials />
       <ExteriorProps />
       <SignAtlas signs={DISTRICT_SIGNS} />
@@ -792,7 +545,7 @@ export function Exterior() {
       <LoadingPanel />
       <StaffScooters />
       <DeliveryVan />
-      <Traffic />
+      {showroomEnabled() ? <VehicleShowroom /> : <Traffic />}
       <Pedestrians />
       {profile.halos && LAMPS.map(([x, y, z]) => <LightHalo key={`${x},${z}`} position={[x, y, z]} size={2.6} warm nightOnly />)}
       {/* Genangan cahaya lampu jalan & lampu dinding bongkar muat di tanah (malam). */}

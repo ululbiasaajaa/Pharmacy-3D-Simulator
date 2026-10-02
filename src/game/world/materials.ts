@@ -82,8 +82,32 @@ export const MAT = {
   kioskWall: std('#e9e3d6', { roughness: 0.85 }),
   kioskLight: new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#fff6e2', emissiveIntensity: 1.2 }),
   houseWall: std('#d8cbb3', { roughness: 0.92 }),
-  /** Cat bodi kendaraan lalu lintas: putih dasar, warna per kendaraan lewat instanceColor. */
-  carPaint: std('#ffffff', { roughness: 0.3, metalness: 0.25 }),
+  // --- Kendaraan (fase kualitas kendaraan): cat ber-clearcoat, kaca, trim, ban, velg, lampu, pelat.
+  /** Cat bodi kendaraan: putih dasar + lapisan bening; warna per kendaraan lewat instanceColor. */
+  carPaint: new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.42, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.08 }),
+  /** Cat putih bodi mobil boks & aksen (tanpa instanceColor). */
+  vanPaint: new THREE.MeshPhysicalMaterial({ color: '#f1f1ee', roughness: 0.45, metalness: 0.15, clearcoat: 0.8, clearcoatRoughness: 0.12 }),
+  carGlass: std('#0c1317', { roughness: 0.05, metalness: 0.55, envMapIntensity: 1.7 }),
+  carTrim: std('#17191b', { roughness: 0.6 }),
+  carInterior: std('#26282a', { roughness: 0.92 }),
+  tireRubber: std('#151617', { roughness: 0.92 }),
+  rimAlloy: std('#c4c8cc', { roughness: 0.3, metalness: 0.9 }),
+  /** Lensa lampu depan: bening mengilap; menyala (emisif) saat malam (NightMaterials). */
+  carLamp: new THREE.MeshStandardMaterial({ color: '#dfe6ea', roughness: 0.06, metalness: 0.3, emissive: '#fff4dc', emissiveIntensity: 0.12 }),
+  amberLens: new THREE.MeshStandardMaterial({ color: '#c47614', roughness: 0.15, emissive: '#ff9a1a', emissiveIntensity: 0.08 }),
+  /** Pelat nomor (peta kanvas dipasang saat runtime). */
+  carPlate: std('#ffffff', { roughness: 0.5 }),
+  plateYellow: std('#ffffff', { roughness: 0.5 }),
+  /** Papan trayek angkot (peta kanvas dipasang saat runtime). */
+  angkotSign: std('#ffffff', { roughness: 0.6 }),
+  // --- Fasad ruko (tekstur foto CC0 baru)
+  brickWall: std('#b4573c', { roughness: 0.9 }),
+  stoneClad: std('#d9c9a8', { roughness: 0.9 }),
+  zincSheet: std('#a7adb1', { roughness: 0.55, metalness: 0.55 }),
+  woodPlank: std('#7a5236', { roughness: 0.8 }),
+  ceramicWall: std('#e8e4dc', { roughness: 0.35 }),
+  /** Atlas kemasan/kain/poster/lauk fiktif untuk isi kios (peta kanvas dipasang saat runtime). */
+  goodsAtlas: std('#ffffff', { roughness: 0.6 }),
   ledRed: new THREE.MeshStandardMaterial({ color: '#7a1010', emissive: '#ff2a1a', emissiveIntensity: 0.6, roughness: 0.3 }),
   screenOn: new THREE.MeshStandardMaterial({ color: '#0d2530', emissive: '#2bb3c9', emissiveIntensity: 0.9, roughness: 0.15 }),
   // --- Eksterior (V6)
@@ -192,6 +216,11 @@ const PHOTO: Partial<Record<MatKey, PhotoSpec>> = {
   facadeB: { tex: 'facade', tint: '#d4e1db', roughness: 1 },
   facadeC: { tex: 'facade', tint: '#e8cbb9', roughness: 1 },
   facadeD: { tex: 'facade', tint: '#ddd8e8', roughness: 1 },
+  brickWall: { tex: 'brick', tint: '#f2e2da', roughness: 1 },
+  stoneClad: { tex: 'stone', tint: '#f3eadb', roughness: 1 },
+  zincSheet: { tex: 'corrugated', tint: '#e2e6e8', roughness: 0.9, metalness: 0.6 },
+  woodPlank: { tex: 'planks', tint: '#e8d2bd', roughness: 1 },
+  ceramicWall: { tex: 'tile', tint: '#f1ece3', roughness: 0.45 },
 };
 
 const baseRoughness = new Map<MatKey, number>();
