@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useSettings } from '@/stores/settingsStore';
 import { Button, ConfirmDialog } from '@/components/ui/primitives';
-import { DEFAULT_KEYS, keyLabel, type KeyBindings } from '@/services/persistence/settings';
+import { DEFAULT_KEYS, keyLabel, type KeyBindings, type Settings } from '@/services/persistence/settings';
 import { checkAiAvailable } from '@/services/ai/aiService';
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
@@ -153,11 +153,12 @@ export function SettingsForm() {
       </section>
       <section>
         <h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-brand-300">Grafis & Tampilan</h3>
-        <Row label="Kualitas grafis" hint="Rendah: tanpa antialias & resolusi lebih kecil. Tinggi: bayangan real-time.">
-          <select aria-label="Kualitas grafis" className="rounded-lg border border-ink-600 bg-ink-900 px-2 py-1 text-sm" value={s.graphicsQuality} onChange={(e) => update({ graphicsQuality: e.target.value as 'low' | 'medium' | 'high' })}>
+        <Row label="Kualitas grafis" hint="Rendah: tanpa antialias & resolusi lebih kecil. Tinggi: bayangan real-time. Ultra: ditambah AO layar & bloom — berat, untuk GPU diskrit.">
+          <select aria-label="Kualitas grafis" className="rounded-lg border border-ink-600 bg-ink-900 px-2 py-1 text-sm" value={s.graphicsQuality} onChange={(e) => update({ graphicsQuality: e.target.value as Settings['graphicsQuality'] })}>
             <option value="low">Rendah</option>
             <option value="medium">Sedang</option>
             <option value="high">Tinggi</option>
+            <option value="ultra">Ultra (GPU diskrit)</option>
           </select>
         </Row>
         <Row label="Skala antarmuka / ukuran teks">

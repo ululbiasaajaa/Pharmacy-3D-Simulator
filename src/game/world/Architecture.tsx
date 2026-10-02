@@ -4,7 +4,7 @@ import { BuiltMeshes } from '@/game/visual/Built';
 import { useVisualProfile } from '@/game/visual/quality';
 import { LightHalo } from '@/game/visual/LightHalo';
 import { CanvasLabel } from './CanvasLabel';
-import { EXPANSION_ROOMS, WALL_H, WALLS } from './layout';
+import { EXPANSION_ROOMS, SIDE_DOORS, WALL_H, WALLS } from './layout';
 import type { MatKey } from './materials';
 import type { RoomId } from '@/domain/types';
 
@@ -123,7 +123,14 @@ function buildFacade() {
   // Massa bangunan lantai atas (di atas plafon; bidang bawahnya tertutup plafon dari dalam).
   b.box('facade', 24.2, 3.8, 28.1, 0, 5.2, -4.05, { r: 0 });
   // Kulit plester sisi luar dinding samping lantai dasar.
-  for (const x of [-12.11, 12.11]) b.box('facade', 0.02, 3.25, 28.1, x, 1.625, -4.05, { r: 0 });
+  // Sisi kiri berlubang untuk pintu bongkar muat (SIDE_DOORS) + kulit di atas kusennya.
+  b.box('facade', 0.02, 3.25, 28.1, 12.11, 1.625, -4.05, { r: 0 });
+  const side = SIDE_DOORS[0];
+  const g0 = side.z - side.width / 2 - 0.06;
+  const g1 = side.z + side.width / 2 + 0.06;
+  b.box('facade', 0.02, 3.25, g0 + 18.1, -12.11, 1.625, (g0 - 18.1) / 2, { r: 0 });
+  b.box('facade', 0.02, 3.25, 10 - g1, -12.11, 1.625, (g1 + 10) / 2, { r: 0 });
+  b.box('facade', 0.02, 3.25 - 2.16, g1 - g0, -12.11, (3.25 + 2.16) / 2, side.z, { r: 0 });
   // Jendela lantai atas: kusen, kaca gelap, tirai, ambang.
   for (const x of [-9.4, -6.6, 6.6, 9.4]) {
     b.box('aluminum', 1.9, 1.5, 0.08, x, 5.55, z + 0.03, { r: 0.006 });
@@ -132,9 +139,6 @@ function buildFacade() {
     b.box('aluminum', 0.035, 1.38, 0.04, x, 5.55, z + 0.08, { r: 0 });
     b.box('facade', 2.05, 0.07, 0.16, x, 4.76, z + 0.1, { r: 0.008 });
   }
-  // Unit AC luar di samping jendela.
-  b.box('white', 0.8, 0.55, 0.3, 8, 4.35, z + 0.2, { r: 0.02 });
-  b.cylinder('metalDark', 0.2, 0.2, 0.02, 7.9, 4.35, z + 0.36, { rotX: Math.PI / 2, seg: 20 });
   // Papan nama (kotak sign) di tengah fasad atas.
   b.box('facadeAccent', 9.6, 1.25, 0.24, 0, 4.42, z + 0.16, { r: 0.03 });
   b.box('aluminum', 9.7, 0.05, 0.26, 0, 3.78, z + 0.16, { r: 0 });

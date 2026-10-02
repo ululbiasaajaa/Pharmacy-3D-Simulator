@@ -18,7 +18,8 @@ export const settingsSchema = z.object({
   sfxVolume: z.number().min(0).max(1),
   mouseSensitivity: z.number().min(0.1).max(3),
   moveSpeed: z.number().min(0.5).max(2),
-  graphicsQuality: z.enum(['low', 'medium', 'high']),
+  /** `ultra` (revisi visual 2) memakai post-processing; ditujukan untuk GPU diskrit. */
+  graphicsQuality: z.enum(['low', 'medium', 'high', 'ultra']),
   uiScale: z.number().min(0.85).max(1.4),
   language: z.enum(['id', 'en']),
   reduceMotion: z.boolean(),

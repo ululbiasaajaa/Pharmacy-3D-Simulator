@@ -7,7 +7,7 @@ import { isFeatureUnlocked, requiredLevel } from '@/domain/progression';
 import { openPharmacy } from '@/domain/simulation';
 import type { FeatureKey } from '@/domain/config';
 import type { GameState, RoomId } from '@/domain/types';
-import { EXPANSION_DOORS, INTERIOR_DOORS, ROOM_LABELS } from '@/game/world/layout';
+import { EXPANSION_DOORS, INTERIOR_DOORS, ROOM_LABELS, SIDE_DOORS } from '@/game/world/layout';
 
 export interface InteractableDef {
   id: string;
@@ -190,6 +190,17 @@ const DEFS: InteractableDef[] = [
     explanation: 'Bahan racik (satuan gram) disimpan per batch dan dipakai saat peracikan.',
     run: open('inventory', { manage: true, category: 'bahan-racik' }),
   },
+  {
+    id: 'loading-dock',
+    label: 'Papan Penerimaan Barang',
+    action: (s) => {
+      const arrived = s.purchaseOrders.filter((o) => o.status === 'arrived').length;
+      return arrived ? `Terima ${arrived} kiriman` : 'Lihat penerimaan barang';
+    },
+    explanation:
+      'Kiriman dari PBF diturunkan di area bongkar muat lalu dibawa lewat pintu samping ke gudang. Saat menerima, cocokkan faktur dengan surat pesanan, periksa nama, jumlah, bentuk sediaan, nomor batch, tanggal kedaluwarsa, kondisi kemasan, dan suhu produk rantai dingin.',
+    run: open('inventory', { manage: true, location: 'warehouse', tab: 'receive' }),
+  },
   // Ruang perluasan
   {
     id: 'bw-cabinet',
@@ -240,6 +251,18 @@ for (const d of INTERIOR_DOORS) {
     label: d.label,
     action: () => (useWorld.getState().doorsOpen[d.id] ? 'Tutup pintu' : 'Buka pintu'),
     explanation: 'Pintu penghubung area staf dengan ruang belakang.',
+    run: () => {
+      audio.play('door');
+      useWorld.getState().toggleDoor(d.id);
+    },
+  });
+}
+for (const d of SIDE_DOORS) {
+  DEFS.push({
+    id: d.id,
+    label: d.label,
+    action: () => (useWorld.getState().doorsOpen[d.id] ? 'Tutup pintu' : 'Buka pintu'),
+    explanation: 'Pintu samping gudang menuju gang bongkar muat. Barang kiriman PBF masuk ke gudang lewat pintu ini.',
     run: () => {
       audio.play('door');
       useWorld.getState().toggleDoor(d.id);

@@ -7,6 +7,12 @@ import { GeoBuilder, boxProjectUV, floorQuad } from '@/game/visual/geometry';
 import { BONE_DEFS, buildCharacterGeometry, patientStyle, staffStyle } from '@/game/npc/characterModel';
 import { MEDICINES } from '@/data/medicines';
 import * as THREE from 'three';
+import charactersManifest from '@/game/assets/generated/characters.json';
+import { PLAYER_AVATAR, patientAvatar, staffAvatar } from '@/game/npc/avatarCast';
+import { avatarStateFor } from '@/game/npc/AvatarCharacter';
+import { buildStrips } from '@/game/visual/CornerAO';
+import { visualProfile } from '@/game/visual/quality';
+import { settingsSchema, DEFAULT_SETTINGS } from '@/services/persistence/settings';
 
 const med = (id: string) => MEDICINES.find((m) => m.id === id)!;
 const luminance = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
@@ -127,5 +133,75 @@ describe('Karakter prosedural', () => {
         g.dispose();
       }
     }
+  });
+});
+
+// ------------------------------------------------------------------ Revisi visual 2 (aset CC0/MIT)
+
+const AVATARS = charactersManifest.avatars as Record<string, { file: string }>;
+
+describe('Pemeran avatar', () => {
+  it('pemetaan deterministik & selalu menunjuk avatar yang tersedia', () => {
+    for (let h = 0; h < 200; h += 7) {
+      for (const female of [true, false])
+        for (const elderly of [true, false])
+          for (const hijab of [true, false]) {
+            const name = patientAvatar({ female, elderly, hijab: female && hijab, peci: !female && elderly && hijab }, h);
+            expect(AVATARS[name]).toBeDefined();
+            expect(patientAvatar({ female, elderly, hijab: female && hijab, peci: !female && elderly && hijab }, h)).toBe(name);
+          }
+    }
+    for (const role of ['pharmacist', 'assistant', 'cashier', 'warehouse', 'manager'] as const) for (const female of [true, false]) expect(AVATARS[staffAvatar(role, female)]).toBeDefined();
+    expect(AVATARS[PLAYER_AVATAR]).toBeDefined();
+  });
+
+  it('apoteker berjas putih tanpa stetoskop; pasien berjilbab memakai avatar berjilbab; berpeci memakai baju koko', () => {
+    expect(staffAvatar('pharmacist', true)).toBe('Medical_Female_01');
+    expect(staffAvatar('pharmacist', false)).toBe('Medical_Male_01');
+    const hijabAvatars = new Set<string>();
+    for (let h = 0; h < 64; h++)
+      for (const elderly of [true, false]) {
+        const name = patientAvatar({ female: true, elderly, hijab: true, peci: false }, h);
+        expect(name).toMatch(/^Female_Adult_(06|10)/);
+        hijabAvatars.add(name);
+      }
+    // Varian warna busana memberi keragaman (bukan hanya dua avatar).
+    expect(hijabAvatars.size).toBeGreaterThanOrEqual(6);
+    expect(patientAvatar({ female: false, elderly: true, hijab: false, peci: true }, 3)).toBe('Male_Adult_15');
+  });
+
+  it('status gameplay dipetakan ke klip motion capture', () => {
+    expect(avatarStateFor({ moving: true, phase: 0, mode: 'angry' })).toBe('walk');
+    expect(avatarStateFor({ moving: false, phase: 0, mode: 'sit' })).toBe('sit');
+    expect(avatarStateFor({ moving: false, phase: 0, mode: 'impatient' })).toBe('wait');
+    expect(avatarStateFor({ moving: false, phase: 0, mode: 'talk' })).toBe('talk');
+    expect(avatarStateFor({ moving: false, phase: 0, mode: 'work' })).toBe('talk2');
+    expect(avatarStateFor({ moving: false, phase: 0, mode: 'angry' })).toBe('angry');
+    expect(avatarStateFor({ moving: false, phase: 0 })).toBe('idle');
+  });
+});
+
+describe('Render & kualitas', () => {
+  it('AO sudut terpanggang hanya berada di dalam bangunan', () => {
+    const g = buildStrips()!;
+    const pos = g.getAttribute('position');
+    expect(pos.count).toBeGreaterThan(0);
+    for (let i = 0; i < pos.count; i++) {
+      expect(pos.getX(i)).toBeGreaterThanOrEqual(-12);
+      expect(pos.getX(i)).toBeLessThanOrEqual(12);
+      expect(pos.getZ(i)).toBeGreaterThanOrEqual(-18);
+      expect(pos.getZ(i)).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it('hanya profil Ultra memakai post-processing (berat untuk GPU terintegrasi)', () => {
+    for (const q of ['low', 'medium', 'high'] as const) {
+      const p = visualProfile(q).postfx;
+      expect(p.ao || p.bloom || p.smaa).toBeFalsy();
+    }
+    expect(visualProfile('ultra').postfx.ao).toBeTruthy();
+    expect(settingsSchema.safeParse({ ...DEFAULT_SETTINGS, graphicsQuality: 'ultra' }).success).toBe(true);
+    expect(settingsSchema.safeParse({ ...DEFAULT_SETTINGS, graphicsQuality: 'high' }).success).toBe(true);
+    expect(settingsSchema.safeParse({ ...DEFAULT_SETTINGS, graphicsQuality: 'mega' }).success).toBe(false);
   });
 });

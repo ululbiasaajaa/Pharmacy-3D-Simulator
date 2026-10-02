@@ -1,4 +1,5 @@
 import type { RoomId } from '@/domain/types';
+import { DISTRICT_BOUNDS } from './district';
 
 /**
  * Tata letak apotek (satuan meter, Y ke atas, pintu masuk di sisi +Z).
@@ -33,7 +34,12 @@ export interface DoorDef {
   width: number;
   label: string;
   room?: RoomId;
+  /** Arah dinding tempat pintu berada: 'x' = dinding sejajar sumbu X (bawaan), 'z' = sejajar sumbu Z. */
+  axis?: 'x' | 'z';
 }
+
+/** Pintu di dinding samping: pintu bongkar muat gudang ke gang kiri (lihat district.ts LOADING). */
+export const SIDE_DOORS: DoorDef[] = [{ id: 'door-loading', x: -12, z: -3.2, width: 1.4, label: 'Pintu Bongkar Muat', axis: 'z' }];
 
 export const INTERIOR_DOORS: DoorDef[] = [
   { id: 'door-storage', x: -8, z: -2, width: 1.4, label: 'Pintu Gudang' },
@@ -88,7 +94,7 @@ const doorGaps = (doors: DoorDef[]) => doors.map((d) => ({ at: d.x, width: d.wid
 
 export const WALLS: AABB[] = [
   ...hWall(10, -12, 12, [{ at: 0, width: 2.4 }]),
-  ...vWall(-12, -18, 10),
+  ...vWall(-12, -18, 10, [{ at: SIDE_DOORS[0].z, width: SIDE_DOORS[0].width }]),
   ...vWall(12, -18, 10),
   ...hWall(-2, -12, 12, doorGaps(INTERIOR_DOORS)),
   ...hWall(-10, -12, 12, doorGaps(EXPANSION_DOORS)),
@@ -110,7 +116,8 @@ export const FURNITURE: Record<string, AABB> = {
   otcShelfA: { minX: 11.2, maxX: 11.9, minZ: 3, maxZ: 6 },
   otcShelfB: { minX: 11.2, maxX: 11.9, minZ: 6.5, maxZ: 9.5 },
   chairsA: { minX: -10.6, maxX: -7.4, minZ: 5.4, maxZ: 6 },
-  storageRack: { minX: -11.85, maxX: -11.2, minZ: -9.5, maxZ: -3 },
+  // Rak dipendekkan (revisi world building) untuk memberi ruang pintu bongkar muat di z −3,9…−2,5.
+  storageRack: { minX: -11.85, maxX: -11.2, minZ: -9.5, maxZ: -4.3 },
   storageCabinet: { minX: -9, maxX: -7, minZ: -9.85, maxZ: -9.15 },
   boxes: { minX: -6, maxX: -4.6, minZ: -9, maxZ: -7.2 },
   labTable: { minX: -1.5, maxX: 1.5, minZ: -6.5, maxZ: -5.5 },
@@ -118,6 +125,9 @@ export const FURNITURE: Record<string, AABB> = {
   adminDesk: { minX: 6.5, maxX: 9.5, minZ: -7.6, maxZ: -6.6 },
   filing: { minX: 11.2, maxX: 11.85, minZ: -9.2, maxZ: -8 },
   lockers: { minX: 11.3, maxX: 11.85, minZ: -5.2, maxZ: -2.8 },
+  // Dekorasi berdiri (revisi visual 2): kursi tamu administrasi & kardus gudang.
+  adminArmChair: { minX: 4.6, maxX: 5.6, minZ: -9.75, maxZ: -8.6 },
+  storageBoxes: { minX: -10.7, maxX: -9.8, minZ: -9.85, maxZ: -9.2 },
 };
 
 /** Perabot yang muncul karena peningkatan. */
@@ -136,32 +146,26 @@ export const EXPANSION_FURNITURE: Record<Exclude<RoomId, 'counter-2'>, AABB[]> =
   'staff-lounge': [
     { minX: 7.5, maxX: 10.5, minZ: -17.6, maxZ: -16.6 },
     { minX: 11.2, maxX: 11.85, minZ: -13, maxZ: -12 },
+    // Kursi plastik (revisi visual 2).
+    { minX: 6.9, maxX: 8.7, minZ: -13.3, maxZ: -12.0 },
   ],
 };
 
 export const COUNTER2_BLOCK: AABB = { minX: -5.8, maxX: -4.2, minZ: 2.4, maxZ: 3.0 };
 
-/** Properti luar yang menghalangi pemain: tiang lampu, pot pohon, motor parkir (di luar jalur pasien). */
-export const EXTERIOR_COLLIDERS: AABB[] = [
-  { minX: -13.6, maxX: -13.2, minZ: 14.3, maxZ: 14.7 },
-  { minX: 13.2, maxX: 13.6, minZ: 14.3, maxZ: 14.7 },
-  { minX: -15.0, maxX: -13.8, minZ: 12.8, maxZ: 14.0 },
-  { minX: 13.7, maxX: 14.9, minZ: 12.8, maxZ: 14.0 },
-  { minX: -11.1, maxX: -9.0, minZ: 11.8, maxZ: 13.3 },
-  { minX: 8.0, maxX: 10.2, minZ: 11.2, maxZ: 12.7 },
-];
-
-/** Batas area pemain (termasuk trotoar di depan apotek). */
-export const WORLD_BOUNDS: AABB = { minX: -16, maxX: 16, minZ: -17.8, maxZ: 16 };
+/**
+ * Batas area pemain = kawasan (district.ts): halaman deret ruko, jalan, trotoar seberang, gang samping &
+ * gang belakang. Setiap tepinya bertemu struktur yang terlihat (gerbang kawasan, bangunan, tembok belakang).
+ * Collider luar (bangunan, gerbang, properti jalan) ada di `districtColliders()`.
+ */
+export const WORLD_BOUNDS: AABB = DISTRICT_BOUNDS;
 
 // ------------------------------------------------------------------ Titik navigasi NPC
 
 export type Vec2 = [number, number];
 
-export const STREET_SPAWN: Vec2 = [-8, 14];
 export const DOOR_OUTSIDE: Vec2 = [0, 11.5];
 export const DOOR_INSIDE: Vec2 = [0, 9];
-export const STREET_EXIT: Vec2 = [9, 14];
 export const SERVICE_SPOT: Vec2 = [-2, 3.1];
 export const PLAYER_SERVICE_SPOT: Vec2 = [-2, 1.0];
 export const EMPLOYEE_SERVICE_SPOTS: Vec2[] = [

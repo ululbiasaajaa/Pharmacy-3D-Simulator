@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
+import { BackRoomCull } from '@/game/visual/InteriorCull';
 import { useGame } from '@/stores/gameStore';
 import { Interactable } from '@/game/objects/Interactable';
 import { BuiltMeshes, type BuiltPart } from '@/game/visual/Built';
 import { CanvasLabel } from './CanvasLabel';
 import { ShelfProducts, type ShelfLevel } from './ProductDisplay';
 import { CanvasPlane, drawBlueprint, drawHealthPoster } from './posters';
+import { CeilingFan, PlantProp, Prop, SetDressing } from './SetDressing';
 import { WALL_H } from './layout';
 import {
   acUnitModel,
@@ -27,7 +29,6 @@ import {
   officeChairModel,
   palletModel,
   pharmaFridgeModel,
-  plantModel,
   registerModel,
   rollUpBannerModel,
   rxCabinetModel,
@@ -234,17 +235,6 @@ function FrontArea({ islandShelf, extraChairs, decor, ac }: { islandShelf: boole
       }),
     [],
   );
-  const plants = useMemo(
-    () =>
-      built((b) => {
-        if (extraChairs >= 1) plantModel(b, -11.3, 8.8, 1, 3);
-        if (decor >= 1) {
-          plantModel(b, -6.2, 9.3, 1.1, 5);
-          plantModel(b, 10.6, 9.4, 1, 7);
-        }
-      }),
-    [extraChairs, decor],
-  );
   const acParts = useMemo(() => built(acUnitModel), []);
   const open = phase === 'open';
   return (
@@ -274,7 +264,14 @@ function FrontArea({ islandShelf, extraChairs, decor, ac }: { islandShelf: boole
       <Interactable id="waiting-chairs" position={[-9, 0, 5.8]}>
         <BuiltMeshes parts={chairs} castShadow />
       </Interactable>
-      <BuiltMeshes parts={plants} castShadow />
+      {/* Tanaman hias (peningkatan Ruang Tunggu & Dekorasi): model foto CC0, cadangan prosedural. */}
+      {extraChairs >= 1 && <PlantProp kind="plant_taro" x={-11.3} z={8.8} rotation={0.4} seed={3} />}
+      {decor >= 1 && (
+        <>
+          <PlantProp kind="plant_tree" x={-6.2} z={9.3} rotation={1.2} scale={1.1} seed={5} />
+          <PlantProp kind="plant_taro" x={10.6} z={9.4} rotation={2.6} seed={7} />
+        </>
+      )}
 
       <Interactable id="mission-board" position={[-11.88, 1.6, 4]}>
         <group rotation={[0, Math.PI / 2, 0]}>
@@ -322,12 +319,12 @@ function StaffArea() {
       <Interactable id="rx-shelf" position={[0, 0, -1.6]}>
         <group position={[-3, 0, 0]}>
           <BuiltMeshes parts={left.parts} castShadow />
-          <ShelfProducts levels={left.levels} filter={isRxAL} maxColumns={14} />
+          <ShelfProducts levels={left.levels} filter={isRxAL} maxColumns={30} />
           <CanvasLabel text="A – L" width={0.36} height={0.14} position={[1.6, 2.02, 0.26]} background="#3d5a80" fontSize={60} />
         </group>
         <group position={[3, 0, 0]}>
           <BuiltMeshes parts={right.parts} castShadow />
-          <ShelfProducts levels={right.levels} filter={isRxMZ} maxColumns={14} />
+          <ShelfProducts levels={right.levels} filter={isRxMZ} maxColumns={30} />
           <CanvasLabel text="M – Z" width={0.36} height={0.14} position={[-1.6, 2.02, 0.26]} background="#3d5a80" fontSize={60} />
         </group>
       </Interactable>
@@ -345,16 +342,17 @@ function StaffArea() {
 // ------------------------------------------------------------------ Gudang
 
 function StorageRoom({ fill }: { fill: number }) {
-  const rack = useMemo(() => builtWithLevels((b) => steelRackModel(b, 6.4, 0.6, 2.4, 4)), []);
+  // Rak 5,2 m (z −9,5…−4,3) memberi ruang pintu bongkar muat di dinding samping (layout.ts storageRack).
+  const rack = useMemo(() => builtWithLevels((b) => steelRackModel(b, 5.2, 0.6, 2.4, 4)), []);
   const top = useMemo(() => built((b) => cartonsOnLevels(b, rack.levels.slice(3), Math.round(fill * 9), 11)), [rack, fill]);
   const cabinet = useMemo(() => built((b) => steelCabinetModel(b)), []);
   const pile = useMemo(() => built((b) => cartonStack(b, Math.max(1, Math.round(fill * 6)), 5)), [fill]);
   return (
     <group>
-      <group position={[-11.5, 0, -6.25]} rotation={[0, Math.PI / 2, 0]}>
+      <group position={[-11.5, 0, -6.9]} rotation={[0, Math.PI / 2, 0]}>
         <BuiltMeshes parts={rack.parts} castShadow />
         <BuiltMeshes parts={top} castShadow />
-        <ShelfProducts levels={rack.levels.slice(0, 3)} location="warehouse" filter={isBoxed} maxColumns={8} />
+        <ShelfProducts levels={rack.levels.slice(0, 3)} location="warehouse" filter={isBoxed} maxColumns={7} />
       </group>
       <Interactable id="storage-cabinet" position={[-8, 0, -9.5]}>
         <BuiltMeshes parts={cabinet} castShadow />
@@ -521,6 +519,9 @@ function Expansions({ rooms }: { rooms: string[] }) {
       {has('staff-lounge') && (
         <group>
           <BuiltMeshes parts={lounge} castShadow />
+          <CeilingFan position={[9, 3.2, -14.2]} />
+          <Prop name="monobloc_chair" position={[7.3, 0, -12.9]} rotation={2.4} />
+          <Prop name="monobloc_chair" position={[8.25, 0, -12.45]} rotation={3.0} />
           <Interactable id="coffee" position={[11.52, 0, -12.5]}>
             <group rotation={[0, -Math.PI / 2, 0]}>
               <BuiltMeshes parts={coffee} castShadow />
@@ -541,11 +542,15 @@ export function Furniture() {
     <group>
       <Counter counter2={rooms.includes('counter-2')} queueDisplay={(up['service-system'] ?? 0) >= 1} />
       <FrontArea islandShelf={(up.shelf ?? 0) >= 1} extraChairs={up['waiting-room'] ?? 0} decor={up.decor ?? 0} ac={(up.ac ?? 0) >= 1} />
+      <SetDressing decor={up.decor ?? 0} />
       <StaffArea />
-      <StorageRoom fill={whFill} />
-      <Lab equipment={up['compounding-equipment'] ?? 0} />
-      <Admin computerLevel={up.computer ?? 0} />
-      <Expansions rooms={rooms} />
+      {/* Ruang belakang hanya dirender bila dapat terlihat (lihat BackRoomCull). */}
+      <BackRoomCull>
+        <StorageRoom fill={whFill} />
+        <Lab equipment={up['compounding-equipment'] ?? 0} />
+        <Admin computerLevel={up.computer ?? 0} />
+        <Expansions rooms={rooms} />
+      </BackRoomCull>
     </group>
   );
 }

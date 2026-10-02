@@ -1,0 +1,415 @@
+{
+  "avatars": {
+    "Medical_Female_01": {
+      "file": "characters/Medical_Female_01.glb",
+      "gender": "f",
+      "use": "Apoteker (jas putih)",
+      "height": 1.739,
+      "hip": 92.33,
+      "tris": 8328,
+      "bytes": 384140,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Medical_Female_01"
+    },
+    "Medical_Male_01": {
+      "file": "characters/Medical_Male_01.glb",
+      "gender": "m",
+      "use": "Apoteker / avatar pemain (jas putih)",
+      "height": 1.806,
+      "hip": 89.52,
+      "tris": 7581,
+      "bytes": 403620,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Medical_Male_01"
+    },
+    "Female_Adult_15": {
+      "file": "characters/Female_Adult_15.glb",
+      "gender": "f",
+      "use": "Kasir (kemeja biru)",
+      "height": 1.739,
+      "hip": 92.33,
+      "tris": 9832,
+      "bytes": 490140,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_15"
+    },
+    "Male_Adult_08": {
+      "file": "characters/Male_Adult_08.glb",
+      "gender": "m",
+      "use": "Kasir (kemeja biru muda)",
+      "height": 1.826,
+      "hip": 89.52,
+      "tris": 7364,
+      "bytes": 406020,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_08"
+    },
+    "Female_Adult_13": {
+      "file": "characters/Female_Adult_13.glb",
+      "gender": "f",
+      "use": "Petugas gudang (rompi)",
+      "height": 1.752,
+      "hip": 92.33,
+      "tris": 8708,
+      "bytes": 463012,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_13"
+    },
+    "Male_Adult_11": {
+      "file": "characters/Male_Adult_11.glb",
+      "gender": "m",
+      "use": "Petugas gudang (kemeja kerja)",
+      "height": 1.803,
+      "hip": 89.52,
+      "tris": 6740,
+      "bytes": 319852,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_11"
+    },
+    "Business_Female_01": {
+      "file": "characters/Business_Female_01.glb",
+      "gender": "f",
+      "use": "Manajer / pasien",
+      "height": 1.74,
+      "hip": 92.33,
+      "tris": 8966,
+      "bytes": 395900,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Business_Female_01"
+    },
+    "Business_Male_06": {
+      "file": "characters/Business_Male_06.glb",
+      "gender": "m",
+      "use": "Manajer (kemeja putih)",
+      "height": 1.81,
+      "hip": 89.52,
+      "tris": 6950,
+      "bytes": 269508,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Professions/Business_Male_06"
+    },
+    "Female_Adult_09": {
+      "file": "characters/Female_Adult_09.glb",
+      "gender": "f",
+      "use": "Asisten / pasien (kardigan)",
+      "height": 1.735,
+      "hip": 92.33,
+      "tris": 9032,
+      "bytes": 502708,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_09"
+    },
+    "Male_Adult_01": {
+      "file": "characters/Male_Adult_01.glb",
+      "gender": "m",
+      "use": "Asisten / pasien (polo)",
+      "height": 1.824,
+      "hip": 89.52,
+      "tris": 7440,
+      "bytes": 445348,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_01"
+    },
+    "Female_Adult_06": {
+      "file": "characters/Female_Adult_06.glb",
+      "gender": "f",
+      "use": "Pasien lansia berjilbab",
+      "height": 1.736,
+      "hip": 92.33,
+      "tris": 6992,
+      "bytes": 427460,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_06"
+    },
+    "Female_Adult_10": {
+      "file": "characters/Female_Adult_10.glb",
+      "gender": "f",
+      "use": "Pasien berjilbab",
+      "height": 1.737,
+      "hip": 92.33,
+      "tris": 6460,
+      "bytes": 301288,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_10"
+    },
+    "Female_Adult_03": {
+      "file": "characters/Female_Adult_03.glb",
+      "gender": "f",
+      "use": "Pasien",
+      "height": 1.739,
+      "hip": 92.33,
+      "tris": 9208,
+      "bytes": 478500,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_03"
+    },
+    "Female_Adult_05": {
+      "file": "characters/Female_Adult_05.glb",
+      "gender": "f",
+      "use": "Pasien",
+      "height": 1.736,
+      "hip": 92.33,
+      "tris": 8288,
+      "bytes": 521956,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_05"
+    },
+    "Female_Adult_07": {
+      "file": "characters/Female_Adult_07.glb",
+      "gender": "f",
+      "use": "Pasien",
+      "height": 1.723,
+      "hip": 92.33,
+      "tris": 8308,
+      "bytes": 464560,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_07"
+    },
+    "Female_Adult_12": {
+      "file": "characters/Female_Adult_12.glb",
+      "gender": "f",
+      "use": "Pasien (muda)",
+      "height": 1.727,
+      "hip": 92.33,
+      "tris": 8774,
+      "bytes": 426016,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_12"
+    },
+    "Male_Adult_09": {
+      "file": "characters/Male_Adult_09.glb",
+      "gender": "m",
+      "use": "Pasien",
+      "height": 1.822,
+      "hip": 89.52,
+      "tris": 7428,
+      "bytes": 442340,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_09"
+    },
+    "Male_Adult_10": {
+      "file": "characters/Male_Adult_10.glb",
+      "gender": "m",
+      "use": "Pasien (muda)",
+      "height": 1.831,
+      "hip": 89.52,
+      "tris": 6732,
+      "bytes": 381044,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_10"
+    },
+    "Male_Adult_15": {
+      "file": "characters/Male_Adult_15.glb",
+      "gender": "m",
+      "use": "Pasien (baju koko & kopiah)",
+      "height": 1.819,
+      "hip": 89.52,
+      "tris": 7292,
+      "bytes": 299044,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_15"
+    },
+    "Male_Adult_17": {
+      "file": "characters/Male_Adult_17.glb",
+      "gender": "m",
+      "use": "Pasien (muda)",
+      "height": 1.812,
+      "hip": 89.52,
+      "tris": 7084,
+      "bytes": 359204,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_17"
+    },
+    "Male_Adult_04": {
+      "file": "characters/Male_Adult_04.glb",
+      "gender": "m",
+      "use": "Pasien",
+      "height": 1.869,
+      "hip": 89.52,
+      "tris": 8684,
+      "bytes": 467984,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_04"
+    },
+    "Male_Adult_07": {
+      "file": "characters/Male_Adult_07.glb",
+      "gender": "m",
+      "use": "Pasien",
+      "height": 1.821,
+      "hip": 89.52,
+      "tris": 7588,
+      "bytes": 404124,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_07"
+    },
+    "Male_Adult_03": {
+      "file": "characters/Male_Adult_03.glb",
+      "gender": "m",
+      "use": "Pasien lansia",
+      "height": 1.807,
+      "hip": 89.52,
+      "tris": 7200,
+      "bytes": 581472,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_03"
+    },
+    "Male_Adult_05": {
+      "file": "characters/Male_Adult_05.glb",
+      "gender": "m",
+      "use": "Pasien lansia",
+      "height": 1.812,
+      "hip": 89.52,
+      "tris": 7836,
+      "bytes": 441176,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_05"
+    },
+    "Male_Adult_14": {
+      "file": "characters/Male_Adult_14.glb",
+      "gender": "m",
+      "use": "Pasien (paruh baya)",
+      "height": 1.796,
+      "hip": 89.52,
+      "tris": 6842,
+      "bytes": 322524,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Male_Adult_14"
+    },
+    "Female_Adult_06_b": {
+      "file": "characters/Female_Adult_06_b.glb",
+      "gender": "f",
+      "use": "Pasien lansia berjilbab merah muda, gamis marun",
+      "height": 1.736,
+      "hip": 92.33,
+      "tris": 6992,
+      "bytes": 422524,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_06"
+    },
+    "Female_Adult_06_c": {
+      "file": "characters/Female_Adult_06_c.glb",
+      "gender": "f",
+      "use": "Pasien lansia berjilbab biru muda, gamis navy",
+      "height": 1.736,
+      "hip": 92.33,
+      "tris": 6992,
+      "bytes": 421252,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_06"
+    },
+    "Female_Adult_06_d": {
+      "file": "characters/Female_Adult_06_d.glb",
+      "gender": "f",
+      "use": "Pasien lansia berjilbab krem, gamis hijau sage",
+      "height": 1.736,
+      "hip": 92.33,
+      "tris": 6992,
+      "bytes": 427340,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_06"
+    },
+    "Female_Adult_10_b": {
+      "file": "characters/Female_Adult_10_b.glb",
+      "gender": "f",
+      "use": "Pasien berjilbab & abaya navy",
+      "height": 1.737,
+      "hip": 92.33,
+      "tris": 6460,
+      "bytes": 311592,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_10"
+    },
+    "Female_Adult_10_c": {
+      "file": "characters/Female_Adult_10_c.glb",
+      "gender": "f",
+      "use": "Pasien berjilbab & abaya marun",
+      "height": 1.737,
+      "hip": 92.33,
+      "tris": 6460,
+      "bytes": 310576,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_10"
+    },
+    "Female_Adult_10_d": {
+      "file": "characters/Female_Adult_10_d.glb",
+      "gender": "f",
+      "use": "Pasien berjilbab & abaya hijau tua",
+      "height": 1.737,
+      "hip": 92.33,
+      "tris": 6460,
+      "bytes": 317144,
+      "source": "https://github.com/microsoft/Microsoft-Rocketbox/tree/master/Assets/Avatars/Adults/Female_Adult_10"
+    }
+  },
+  "anims": {
+    "f": {
+      "file": "characters/anim-f.glb",
+      "hip": 91.36,
+      "bytes": 1043704,
+      "clips": {
+        "walk": {
+          "source": "walk_neutral",
+          "duration": 1.233,
+          "speed": 1.295,
+          "forward": [
+            0,
+            0,
+            1
+          ]
+        },
+        "idle": {
+          "source": "idle_neutral_01",
+          "duration": 15.533,
+          "speed": 0
+        },
+        "wait": {
+          "source": "idle_waiting_01",
+          "duration": 47.5,
+          "speed": 0
+        },
+        "angry": {
+          "source": "idle_angry_01",
+          "duration": 23.833,
+          "speed": 0
+        },
+        "talk": {
+          "source": "gestic_talk_neutral_01",
+          "duration": 27.333,
+          "speed": 0
+        },
+        "talk2": {
+          "source": "gestic_talk_neutral_02",
+          "duration": 27.667,
+          "speed": 0
+        },
+        "sit": {
+          "source": "sit_chair_idle_neutral_01",
+          "duration": 33.233,
+          "speed": 0
+        }
+      }
+    },
+    "m": {
+      "file": "characters/anim-m.glb",
+      "hip": 90.18,
+      "bytes": 1169900,
+      "clips": {
+        "walk": {
+          "source": "walk_neutral",
+          "duration": 1.067,
+          "speed": 1.402,
+          "forward": [
+            0,
+            0,
+            1
+          ]
+        },
+        "idle": {
+          "source": "idle_neutral_01",
+          "duration": 11.667,
+          "speed": 0
+        },
+        "wait": {
+          "source": "idle_waiting_01",
+          "duration": 47,
+          "speed": 0
+        },
+        "angry": {
+          "source": "idle_angry_01",
+          "duration": 28.333,
+          "speed": 0
+        },
+        "talk": {
+          "source": "gestic_talk_neutral_01",
+          "duration": 35.567,
+          "speed": 0
+        },
+        "talk2": {
+          "source": "gestic_talk_neutral_02",
+          "duration": 44.4,
+          "speed": 0
+        },
+        "sit": {
+          "source": "sit_chair_idle_neutral_01",
+          "duration": 36.1,
+          "speed": 0
+        }
+      }
+    }
+  },
+  "license": {
+    "name": "MIT",
+    "holder": "Copyright (c) 2020 Microsoft",
+    "source": "https://github.com/microsoft/Microsoft-Rocketbox"
+  }
+}

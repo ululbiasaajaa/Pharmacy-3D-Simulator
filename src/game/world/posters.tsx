@@ -11,6 +11,7 @@ export function CanvasPlane({
   position,
   rotation,
   emissive = false,
+  transparent = false,
 }: {
   draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
   width: number;
@@ -19,6 +20,8 @@ export function CanvasPlane({
   position?: [number, number, number];
   rotation?: [number, number, number];
   emissive?: boolean;
+  /** Latar kanvas transparan (mis. tulisan kapur di atas papan). */
+  transparent?: boolean;
 }) {
   const texture = useMemo(() => {
     const c = document.createElement('canvas');
@@ -35,7 +38,7 @@ export function CanvasPlane({
   return (
     <mesh position={position} rotation={rotation} raycast={() => null}>
       <planeGeometry args={[width, height]} />
-      {emissive ? <meshBasicMaterial map={texture} toneMapped={false} /> : <meshStandardMaterial map={texture} roughness={0.7} />}
+      {emissive ? <meshBasicMaterial map={texture} toneMapped={false} /> : <meshStandardMaterial map={texture} roughness={0.7} transparent={transparent} depthWrite={!transparent} />}
     </mesh>
   );
 }

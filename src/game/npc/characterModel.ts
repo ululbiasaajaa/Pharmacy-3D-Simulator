@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { FIRST_NAMES_F } from '@/data/names';
 import type { Employee, Patient } from '@/domain/types';
+import { PLAYER_AVATAR, patientAvatar, staffAvatar } from './avatarCast';
 
 /**
  * Karakter "stylized realistic" prosedural (ART_DIRECTION.md §5):
@@ -33,6 +34,8 @@ export interface CharacterStyle {
   /** Skala tinggi (1 = ±1,72 m). */
   height: number;
   elderly: boolean;
+  /** Avatar Rocketbox (ART_DIRECTION.md §5); tanpa avatar → model prosedural. */
+  avatar?: string;
 }
 
 // ------------------------------------------------------------------ Rangka
@@ -335,13 +338,14 @@ export function patientStyle(p: Pick<Patient, 'id' | 'gender' | 'age' | 'appeara
   const dress = !!hijab && r(7) < 0.4;
   const hairStyle: HairStyle = female ? pickFrom<HairStyle>(['long', 'bun', 'ponytail', 'long'], h, 9) : elderly && r(11) < 0.4 ? 'balding' : pickFrom<HairStyle>(['short', 'crop', 'short'], h, 13);
   const topColor = female ? pickFrom(WOMEN_TOPS, h, 2) : pickFrom(MEN_TOPS, h, 4);
+  const peci = !female && elderly && r(17) < 0.45;
   return withKey({
     female,
     skin: SKIN[(p.appearance + (h % 3)) % SKIN.length],
     hair: elderly && r(15) < 0.8 ? pickFrom(GRAY_HAIR, h, 6) : pickFrom(HAIR, h, 8),
     hairStyle,
     hijab,
-    peci: !female && elderly && r(17) < 0.45,
+    peci,
     glasses: (elderly && r(19) < 0.6) || r(21) < 0.12,
     top: dress ? 'dress' : female ? (r(1) < 0.5 ? 'blouse' : 'tshirt') : pickFrom<TopStyle>(['tshirt', 'shirt', 'polo', 'shirt'], h, 10),
     topColor: dress ? pickFrom(SKIRTS, h, 12) : topColor,
@@ -351,6 +355,7 @@ export function patientStyle(p: Pick<Patient, 'id' | 'gender' | 'age' | 'appeara
     shoes: pickFrom(SHOES, h, 18),
     height: (female ? 0.94 : 0.99) + r(27) * 0.07 - (elderly ? 0.03 : 0),
     elderly,
+    avatar: patientAvatar({ female, elderly, hijab: !!hijab, peci }, h),
   });
 }
 
@@ -385,6 +390,7 @@ export function staffStyle(e: Pick<Employee, 'id' | 'name' | 'role' | 'appearanc
     nameTag: true,
     height: (female ? 0.95 : 1.0) + r(27) * 0.05,
     elderly: false,
+    avatar: staffAvatar(e.role, female),
   });
 }
 
@@ -404,4 +410,5 @@ export const PLAYER_STYLE: CharacterStyle = withKey({
   nameTag: true,
   height: 1,
   elderly: false,
+  avatar: PLAYER_AVATAR,
 });

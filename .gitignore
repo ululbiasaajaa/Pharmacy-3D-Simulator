@@ -7,3 +7,6 @@ dist
 playwright-report
 test-results
 coverage
+
+# Cache unduhan pipeline aset (scripts/assets)
+.asset-cache/

@@ -5,20 +5,22 @@ import { useGame, act } from '@/stores/gameStore';
 import { useUi } from '@/stores/uiStore';
 import { useSettings } from '@/stores/settingsStore';
 import { useWorld, interactableObjects, occluderObjects } from '@/game/world/worldStore';
-import { buildColliders, moveWithCollision, pointInBoxes } from '@/game/world/collision';
-import { PLAYER_RADIUS, PLAYER_SPAWN, WALLS, type AABB } from '@/game/world/layout';
+import { buildCameraBlockers, buildColliders, moveWithCollision, pointInBoxes } from '@/game/world/collision';
+import { PLAYER_RADIUS, PLAYER_SPAWN, type AABB } from '@/game/world/layout';
 import { INTERACTABLES, interact } from '@/game/interactions/interactions';
 import { tutorialAwaits, tutorialSignal } from '@/domain/guidance';
 import { audio } from '@/services/audio/audioEngine';
 import { Character, type CharacterAnim } from '@/game/npc/Character';
 import { PLAYER_STYLE } from '@/game/npc/characterModel';
 import { flashMessage } from '@/components/hud/flash';
+import { crowd, streetState, vehicles } from '@/game/npc/crowd';
 
 const EYE = 1.65;
 
 /** Kontrol pemain orang pertama (default) atau orang ketiga (opsional). */
 export function PlayerController() {
   const { camera, gl, scene } = useThree();
+  const advance = useThree((s) => s.advance);
   const pos = useRef({ x: PLAYER_SPAWN.x, z: PLAYER_SPAWN.z });
   const yaw = useRef(Math.PI); // menghadap pintu masuk (+Z)
   const pitch = useRef(-0.05);
@@ -36,17 +38,25 @@ export function PlayerController() {
   const doorsOpen = useWorld((s) => s.doorsOpen);
   const roomsKey = useGame((s) => (s.game?.pharmacy.unlockedRooms ?? []).join(','));
   const upgrades = useGame((s) => s.game?.pharmacy.upgrades);
+  // Kendaraan kawasan: mobil boks PBF yang sudah parkir & motor karyawan yang sedang bertugas (district.ts).
+  const vanParked = useWorld((s) => s.vanParked);
+  const staffScooters = useGame((s) => s.game?.employees.filter((e) => e.status !== 'off').length ?? 0);
   const colliders = useMemo(
     () =>
       buildColliders({
         doorsOpen,
         unlockedRooms: (roomsKey ? roomsKey.split(',') : []) as never,
         upgrades: upgrades ?? {},
+        vanParked,
+        staffScooters,
       }),
-    [doorsOpen, roomsKey, upgrades],
+    [doorsOpen, roomsKey, upgrades, vanParked, staffScooters],
   );
-  // Penghalang kamera orang ketiga: dinding & pintu tertutup (perabot rendah diabaikan).
-  const cameraBlockers = useMemo<AABB[]>(() => colliders.filter((c) => WALLS.includes(c) || (c.maxZ - c.minZ <= 0.21 && c.maxX - c.minX <= 1.5)), [colliders]);
+  // Penghalang kamera orang ketiga: dinding, pintu tertutup, bangunan kawasan (perabot rendah diabaikan).
+  const cameraBlockers = useMemo<AABB[]>(
+    () => buildCameraBlockers({ doorsOpen, unlockedRooms: (roomsKey ? roomsKey.split(',') : []) as never, upgrades: {}, vanParked }),
+    [doorsOpen, roomsKey, vanParked],
+  );
 
   useEffect(() => {
     camera.rotation.order = 'YXZ';
@@ -67,11 +77,21 @@ export function PlayerController() {
       camera,
       /** Menjalankan aksi domain (uji visual: mis. memaksa status pasien). */
       act,
+      /** Status kawasan (mobil boks, kendaraan, orang di luar) — untuk uji dinamis world building. */
+      district: () => ({
+        vanParked: useWorld.getState().vanParked,
+        vehicles: [...vehicles.entries()].map(([id, v]) => ({ id, ...v })),
+        crowd: [...crowd.entries()].map(([id, p]) => ({ id, ...p })),
+        street: { ...streetState },
+        player: { ...pos.current },
+      }),
+      /** Merender satu frame penuh (scene + post-processing) — untuk benchmark GPU. */
+      frame: () => advance(performance.now()),
     };
     return () => {
       delete w.__pharmacyDebug;
     };
-  }, [scene, gl, camera]);
+  }, [scene, gl, camera, advance]);
 
   // ------------------------------------------------------------ Input
   useEffect(() => {

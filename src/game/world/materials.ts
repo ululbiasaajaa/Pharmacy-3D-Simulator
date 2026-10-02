@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { disposeTexturesExcept, getTextureSet, type TextureName } from '@/game/visual/textures';
+import { disposePhotoTexturesExcept, loadPhotoTextureSet, type PhotoTextureKey, type PhotoTextureSet } from '@/game/assets/photoTextures';
 import type { VisualProfile } from '@/game/visual/quality';
 
 /**
- * Material bersama (dibuat sekali) agar scene ringan. Semua aset 3D dibuat dari kode sendiri.
- * Palet mengikuti ART_DIRECTION.md §7.
+ * Material bersama (dibuat sekali) agar scene ringan. Palet mengikuti ART_DIRECTION.md §8.
+ * Permukaan utama memakai tekstur foto CC0 (§6) dengan tekstur prosedural sebagai fallback.
  */
 const std = (color: string, extra: Partial<THREE.MeshStandardMaterialParameters> = {}) =>
   new THREE.MeshStandardMaterial({ color, roughness: 0.8, metalness: 0, ...extra });
@@ -63,6 +64,27 @@ export const MAT = {
   plantLeafLight: std('#9bbf4a', { roughness: 0.6 }),
   soil: std('#3d2d22', { roughness: 1 }),
   ledStrip: new THREE.MeshStandardMaterial({ color: '#fff3dc', emissive: '#ffd79a', emissiveIntensity: 2 }),
+  // --- Set dressing (revisi 2)
+  aparRed: std('#b8211a', { roughness: 0.32, metalness: 0.15 }),
+  smokedDome: std('#1d2226', { roughness: 0.08, metalness: 0.4, envMapIntensity: 1.3 }),
+  plasticWhite: std('#eeeeea', { roughness: 0.4 }),
+  acrylic: new THREE.MeshStandardMaterial({ color: '#eef6f8', transparent: true, opacity: 0.35, roughness: 0.05, depthWrite: false }),
+  coir: std('#3a3631', { roughness: 0.98 }),
+  // Kartu daun pohon jalan: peta rumpun daun digambar saat runtime (streetModels.drawLeafAtlas).
+  leafCard: new THREE.MeshStandardMaterial({ color: '#ffffff', alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.78 }),
+  tactile: std('#d6b52c', { roughness: 0.75 }),
+  // --- World building (kawasan)
+  roofTile: std('#9a4b2b', { roughness: 0.78 }),
+  zinc: std('#9aa2a7', { roughness: 0.45, metalness: 0.55 }),
+  tankBlue: std('#2d63a8', { roughness: 0.42 }),
+  tankOrange: std('#d9822b', { roughness: 0.42 }),
+  paintYellow: std('#e3b505', { roughness: 0.7 }),
+  kioskWall: std('#e9e3d6', { roughness: 0.85 }),
+  kioskLight: new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#fff6e2', emissiveIntensity: 1.2 }),
+  houseWall: std('#d8cbb3', { roughness: 0.92 }),
+  /** Cat bodi kendaraan lalu lintas: putih dasar, warna per kendaraan lewat instanceColor. */
+  carPaint: std('#ffffff', { roughness: 0.3, metalness: 0.25 }),
+  ledRed: new THREE.MeshStandardMaterial({ color: '#7a1010', emissive: '#ff2a1a', emissiveIntensity: 0.6, roughness: 0.3 }),
   screenOn: new THREE.MeshStandardMaterial({ color: '#0d2530', emissive: '#2bb3c9', emissiveIntensity: 0.9, roughness: 0.15 }),
   // --- Eksterior (V6)
   shutter: std('#9aa1a6', { metalness: 0.4, roughness: 0.5 }),
@@ -131,26 +153,72 @@ const TEXTURED: Partial<Record<MatKey, TexSpec>> = {
   terrace: { tex: 'tile' },
 };
 
+/**
+ * Tekstur foto PBR (CC0, ambientCG — ART_DIRECTION.md §6) yang menggantikan tekstur prosedural begitu
+ * selesai dimuat. `tint` dikalikan dengan albedo foto; `roughness` mengalikan kanal G peta ORM.
+ * `hero` = permukaan besar yang dekat kamera (resolusi lebih tinggi).
+ */
+type PhotoSpec = {
+  tex: PhotoTextureKey;
+  tint: string;
+  roughness?: number;
+  metalness?: number;
+  normalScale?: number;
+  /** Kekuatan AO bawaan tekstur (nat ubin, serat) terhadap cahaya ambien. */
+  ao?: number;
+  selfLit?: number;
+  hero?: boolean;
+  maxSize?: number;
+};
+
+const PHOTO: Partial<Record<MatKey, PhotoSpec>> = {
+  floorFront: { tex: 'tile', tint: '#f6efe4', roughness: 0.55, hero: true, ao: 0.8 },
+  wall: { tex: 'plaster', tint: '#f3ede2', roughness: 1, normalScale: 0.6, hero: true },
+  wallBack: { tex: 'plaster', tint: '#ece5d8', roughness: 1, normalScale: 0.6, hero: true },
+  ceiling: { tex: 'ceiling', tint: '#f3f1ec', selfLit: 0.8, hero: true },
+  wood: { tex: 'wood', tint: '#f7e6d2', roughness: 0.75, hero: true },
+  woodDark: { tex: 'wood', tint: '#8a6a52', roughness: 0.8 },
+  steel: { tex: 'brushed', tint: '#eef0f2', roughness: 0.75, metalness: 1 },
+  aluminum: { tex: 'brushed', tint: '#cfd3d6', roughness: 0.7, metalness: 0.9 },
+  terrace: { tex: 'tile', tint: '#e7dfd1', roughness: 0.7 },
+  sidewalk: { tex: 'paving', tint: '#e8e4dc', roughness: 1.05 },
+  tactile: { tex: 'tactile', tint: '#ffffff', roughness: 0.9 },
+  road: { tex: 'asphalt', tint: '#d9d9d9', roughness: 1 },
+  // Beton cor gang & tiang: tekstur plester (Concrete033 terlalu gelap, rata-rata RGB ±80) dengan tint abu-abu.
+  concrete: { tex: 'plaster', tint: '#bdb9b0', roughness: 1 },
+  ground: { tex: 'concrete', tint: '#b5b0a6', roughness: 1 },
+  facade: { tex: 'facade', tint: '#f1ebdf', roughness: 1 },
+  facadeA: { tex: 'facade', tint: '#ecdcbc', roughness: 1 },
+  facadeB: { tex: 'facade', tint: '#d4e1db', roughness: 1 },
+  facadeC: { tex: 'facade', tint: '#e8cbb9', roughness: 1 },
+  facadeD: { tex: 'facade', tint: '#ddd8e8', roughness: 1 },
+};
+
 const baseRoughness = new Map<MatKey, number>();
+const baseMetalness = new Map<MatKey, number>();
 const baseColor = new Map<MatKey, THREE.Color>();
 let configuredFor = '';
+let photoGeneration = 0;
 
 /** Memasang tekstur prosedural sesuai profil kualitas (dipanggil sekali per perubahan kualitas). */
 export function configureMaterials(profile: VisualProfile) {
-  const key = `${profile.texSize}:${profile.detailMaps}:${profile.anisotropy}`;
+  const key = `${profile.quality}:${profile.texSize}:${profile.detailMaps}:${profile.anisotropy}`;
   if (key === configuredFor) return;
   configuredFor = key;
   const keep = new Set<THREE.Texture>();
   for (const [name, spec] of Object.entries(TEXTURED) as [MatKey, TexSpec][]) {
     const m = MAT[name] as THREE.MeshStandardMaterial;
-    if (!baseRoughness.has(name)) baseRoughness.set(name, m.roughness);
-    if (!baseColor.has(name)) baseColor.set(name, m.color.clone());
+    remember(name, m);
     const set = getTextureSet(spec.tex, profile.texSize, profile.detailMaps, profile.anisotropy);
     m.map = set.map;
     m.roughnessMap = set.roughnessMap ?? null;
     m.normalMap = set.normalMap ?? null;
+    m.aoMap = null;
+    m.metalnessMap = null;
+    m.metalness = baseMetalness.get(name) ?? 0;
     // Dengan roughnessMap, nilai peta dipakai langsung (dikalikan 1).
     m.roughness = set.roughnessMap ? 1 : (baseRoughness.get(name) ?? 0.8);
+    m.color.copy(baseColor.get(name)!);
     if (spec.selfLit) {
       // Albedo gelap + emisif bertekstur: warna tetap, tidak terpengaruh lampu titik di dekatnya.
       m.color.set('#000000');
@@ -163,4 +231,71 @@ export function configureMaterials(profile: VisualProfile) {
     [set.map, set.roughnessMap, set.normalMap].forEach((t) => t && keep.add(t));
   }
   disposeTexturesExcept(keep);
+  void applyPhotoTextures(profile);
+}
+
+function remember(name: MatKey, m: THREE.MeshStandardMaterial) {
+  if (!baseRoughness.has(name)) baseRoughness.set(name, m.roughness);
+  if (!baseMetalness.has(name)) baseMetalness.set(name, m.metalness);
+  if (!baseColor.has(name)) baseColor.set(name, m.color.clone());
+}
+
+/** Kualitas Rendah: albedo 512 tanpa normal/ORM. Sedang: albedo 1K untuk permukaan utama. Tinggi: semua peta 1K untuk permukaan utama. */
+function photoSizes(profile: VisualProfile, spec: PhotoSpec): [number, number] {
+  const cap = spec.maxSize ?? 4096;
+  if (profile.quality === 'low') return [Math.min(512, cap), 0];
+  const albedo = spec.hero ? 1024 : 512;
+  const detail = spec.hero && (profile.quality === 'high' || profile.quality === 'ultra') ? 1024 : 512;
+  return [Math.min(albedo, cap), Math.min(detail, cap)];
+}
+
+async function applyPhotoTextures(profile: VisualProfile) {
+  const generation = ++photoGeneration;
+  const keepPhoto = new Set<THREE.Texture>();
+  const replaced = new Set<MatKey>();
+  await Promise.all(
+    (Object.entries(PHOTO) as [MatKey, PhotoSpec][]).map(async ([name, spec]) => {
+      const [albedo, detail] = photoSizes(profile, spec);
+      let set: PhotoTextureSet;
+      try {
+        set = await loadPhotoTextureSet(spec.tex, albedo, detail, profile.anisotropy);
+      } catch (e) {
+        console.warn(`Tekstur foto "${spec.tex}" gagal dimuat; memakai tekstur prosedural.`, e);
+        return;
+      }
+      // Kualitas diganti saat masih memuat → hasil lama diabaikan.
+      if (generation !== photoGeneration) return;
+      const m = MAT[name] as THREE.MeshStandardMaterial;
+      remember(name, m);
+      m.map = set.map;
+      m.normalMap = set.normalMap ?? null;
+      m.roughnessMap = set.ormMap ?? null;
+      m.aoMap = set.ormMap ?? null;
+      m.aoMapIntensity = spec.ao ?? 0.6;
+      m.roughness = set.ormMap ? (spec.roughness ?? 1) : (baseRoughness.get(name) ?? 0.8);
+      m.metalness = spec.metalness ?? baseMetalness.get(name) ?? 0;
+      const ns = spec.normalScale ?? 1;
+      m.normalScale.set(ns, ns);
+      if (spec.selfLit) {
+        m.color.set('#000000');
+        m.emissive.set(spec.tint).multiplyScalar(spec.selfLit);
+        m.emissiveMap = set.map;
+      } else {
+        m.color.set(spec.tint);
+      }
+      m.needsUpdate = true;
+      replaced.add(name);
+      [set.map, set.normalMap, set.ormMap].forEach((t) => t && keepPhoto.add(t));
+    }),
+  );
+  if (generation !== photoGeneration) return;
+  // Bebaskan tekstur prosedural yang kini tidak dipakai material mana pun.
+  const stillProcedural = new Set<THREE.Texture>();
+  for (const [name] of Object.entries(TEXTURED) as [MatKey, TexSpec][]) {
+    if (replaced.has(name)) continue;
+    const m = MAT[name] as THREE.MeshStandardMaterial;
+    [m.map, m.roughnessMap, m.normalMap].forEach((t) => t && stillProcedural.add(t));
+  }
+  disposeTexturesExcept(stillProcedural);
+  await disposePhotoTexturesExcept(keepPhoto);
 }

@@ -1,0 +1,302 @@
+{
+  "plant_taro": {
+    "source": "Poly Haven",
+    "id": "potted_plant_02",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/potted_plant_02",
+    "use": "Tanaman keladi di pot (ruang tunggu)",
+    "file": "models/plant_taro.glb",
+    "triangles": 10424,
+    "bytes": 571752,
+    "min": [
+      -0.396,
+      0,
+      -0.42
+    ],
+    "max": [
+      0.304,
+      0.84,
+      0.236
+    ]
+  },
+  "plant_tree": {
+    "source": "Poly Haven",
+    "id": "potted_plant_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/potted_plant_01",
+    "use": "Tanaman pot tinggi (sudut ruangan)",
+    "file": "models/plant_tree.glb",
+    "triangles": 12278,
+    "bytes": 767904,
+    "min": [
+      -0.338,
+      0.001,
+      -0.364
+    ],
+    "max": [
+      0.249,
+      1.336,
+      0.27
+    ]
+  },
+  "plant_succulent": {
+    "source": "Poly Haven",
+    "id": "potted_plant_04",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/potted_plant_04",
+    "use": "Sukulen kecil (meja)",
+    "file": "models/plant_succulent.glb",
+    "triangles": 8929,
+    "bytes": 219416,
+    "min": [
+      -0.084,
+      0,
+      -0.084
+    ],
+    "max": [
+      0.084,
+      0.268,
+      0.101
+    ]
+  },
+  "monobloc_chair": {
+    "source": "Poly Haven",
+    "id": "plastic_monobloc_chair_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/plastic_monobloc_chair_01",
+    "use": "Kursi plastik (ruang staf, teras tetangga)",
+    "file": "models/monobloc_chair.glb",
+    "triangles": 3356,
+    "bytes": 149692,
+    "min": [
+      -0.321,
+      0,
+      -0.336
+    ],
+    "max": [
+      0.321,
+      0.88,
+      0.292
+    ]
+  },
+  "cardboard_box": {
+    "source": "Poly Haven",
+    "id": "cardboard_box_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/cardboard_box_01",
+    "use": "Kardus (gudang)",
+    "file": "models/cardboard_box.glb",
+    "triangles": 2618,
+    "bytes": 107992,
+    "min": [
+      -0.193,
+      -0.007,
+      -0.225
+    ],
+    "max": [
+      0.194,
+      0.335,
+      0.291
+    ]
+  },
+  "ceiling_fan": {
+    "source": "Poly Haven",
+    "id": "ceiling_fan",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/ceiling_fan",
+    "use": "Kipas plafon (ruang staf)",
+    "file": "models/ceiling_fan.glb",
+    "triangles": 5722,
+    "bytes": 141136,
+    "min": [
+      -0.732,
+      -0.516,
+      -0.731
+    ],
+    "max": [
+      0.731,
+      0,
+      0.732
+    ]
+  },
+  "arm_chair": {
+    "source": "Poly Haven",
+    "id": "modern_arm_chair_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/modern_arm_chair_01",
+    "use": "Kursi kantor/tamu (administrasi)",
+    "file": "models/arm_chair.glb",
+    "triangles": 5348,
+    "bytes": 152264,
+    "min": [
+      -0.407,
+      0,
+      -0.575
+    ],
+    "max": [
+      0.414,
+      1.023,
+      0.411
+    ]
+  },
+  "desk_lamp": {
+    "source": "Poly Haven",
+    "id": "desk_lamp_arm_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/desk_lamp_arm_01",
+    "use": "Lampu meja (administrasi)",
+    "file": "models/desk_lamp.glb",
+    "triangles": 7938,
+    "bytes": 225192,
+    "min": [
+      -0.118,
+      -0.088,
+      -0.297
+    ],
+    "max": [
+      0.083,
+      0.805,
+      0.317
+    ]
+  },
+  "cleaner_5l": {
+    "source": "Poly Haven",
+    "id": "multi_cleaner_5_litre",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/multi_cleaner_5_litre",
+    "use": "Jeriken pembersih (gudang)",
+    "file": "models/cleaner_5l.glb",
+    "triangles": 2282,
+    "bytes": 46332,
+    "min": [
+      -0.115,
+      0,
+      -0.053
+    ],
+    "max": [
+      0.105,
+      0.3,
+      0.053
+    ]
+  },
+  "bleach": {
+    "source": "Poly Haven",
+    "id": "bleach_bottle",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/bleach_bottle",
+    "use": "Botol pembersih (gudang)",
+    "file": "models/bleach.glb",
+    "triangles": 2026,
+    "bytes": 39068,
+    "min": [
+      -0.044,
+      0,
+      -0.031
+    ],
+    "max": [
+      0.044,
+      0.294,
+      0.031
+    ]
+  },
+  "cleaner": {
+    "source": "Poly Haven",
+    "id": "all_purpose_cleaner",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/all_purpose_cleaner",
+    "use": "Botol pembersih (gudang)",
+    "file": "models/cleaner.glb",
+    "triangles": 2312,
+    "bytes": 42540,
+    "min": [
+      -0.076,
+      0,
+      -0.059
+    ],
+    "max": [
+      0.081,
+      0.32,
+      0.059
+    ]
+  },
+  "ac_outdoor": {
+    "source": "Poly Haven",
+    "id": "exterior_aircon_unit",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/exterior_aircon_unit",
+    "use": "Unit AC luar (fasad ruko)",
+    "file": "models/ac_outdoor.glb",
+    "triangles": 4289,
+    "bytes": 248080,
+    "min": [
+      -0.892,
+      -0.32,
+      -0.216
+    ],
+    "max": [
+      -0.093,
+      0.608,
+      0.158
+    ]
+  },
+  "chalkboard": {
+    "source": "Poly Haven",
+    "id": "standing_chalkboard_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/standing_chalkboard_01",
+    "use": "Papan berdiri di teras",
+    "file": "models/chalkboard.glb",
+    "triangles": 2372,
+    "bytes": 104800,
+    "min": [
+      -0.446,
+      0,
+      -0.379
+    ],
+    "max": [
+      0.473,
+      1.509,
+      0.379
+    ]
+  },
+  "utility_box": {
+    "source": "Poly Haven",
+    "id": "utility_box_02",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/utility_box_02",
+    "use": "Panel listrik di trotoar",
+    "file": "models/utility_box.glb",
+    "triangles": 3760,
+    "bytes": 120268,
+    "min": [
+      -0.46,
+      0,
+      -0.21
+    ],
+    "max": [
+      0.46,
+      1.12,
+      0.222
+    ]
+  },
+  "cafe_set": {
+    "source": "Poly Haven",
+    "id": "outdoor_table_chair_set_01",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/outdoor_table_chair_set_01",
+    "use": "Meja-kursi teras kedai kopi",
+    "file": "models/cafe_set.glb",
+    "triangles": 6736,
+    "bytes": 233860,
+    "min": [
+      -0.426,
+      -0.006,
+      -0.81
+    ],
+    "max": [
+      0.316,
+      0.852,
+      0.906
+    ]
+  }
+}

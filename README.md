@@ -6,7 +6,12 @@ Game simulasi pengelolaan apotek 3D berbasis web. Pemain menjelajahi apotek dari
 
 ## Fitur
 
-- **Dunia 3D yang dapat dijelajahi** — area pelanggan, meja pelayanan & kasir, rak obat bebas/resep, lemari pendingin, gudang, laboratorium racik, ruang administrasi, area pegawai, serta 4 ruang perluasan yang terbuka lewat pembelian. Semua model dibuat dari primitif low‑poly di kode.
+- **Dunia 3D yang dapat dijelajahi** — area pelanggan, meja pelayanan & kasir, rak obat bebas/resep, lemari pendingin, gudang, laboratorium racik, ruang administrasi, area pegawai, serta 4 ruang perluasan yang terbuka lewat pembelian. Gaya *stylized realistic*:
+  - karakter manusia realistis ber-motion capture (Microsoft Rocketbox, MIT);
+  - tekstur foto PBR (ambientCG, CC0);
+  - properti realistis (Poly Haven, CC0);
+  - perabot apotek dan detail khas Indonesia yang dibuat sendiri, misalnya APAR, papan izin, stiker antre, ketapang, dan motor matik;
+  - kehidupan jalan.
 - **Kontrol** — WASD + mouse (pointer lock), Shift lari, E interaksi, Tab tablet, V ganti kamera, Esc jeda; tombol dapat diubah. Kontrol alternatif panah/PageUp/PageDown dan opsi *Akses cepat stasiun*.
 - **Interaksi berbasis raycast** — nama objek, petunjuk tombol, sorotan, alasan objek terkunci; dinding menghalangi interaksi.
 - **Pasien NPC** — 7 kategori (obat bebas, resep, tebus ulang, tanya ketersediaan, racikan, pembatal, informasi), antrean dengan kapasitas, kesabaran, dialog kontekstual, berjalan masuk/antre/ke kasir/pulang.
@@ -21,13 +26,13 @@ Game simulasi pengelolaan apotek 3D berbasis web. Pemain menjelajahi apotek dari
 - **Progres** — level & XP dengan fitur terbuka bertahap, reputasi, 19 misi, 18 pencapaian, 7 event acak (lonjakan pasien, keterlambatan kirim, pemeriksaan inventaris, dll.).
 - **Mode permainan** — Karier, Pembelajaran (6 pelajaran terpandu + umpan balik + glosarium), Tantangan (5 skenario dengan target & batas waktu).
 - **Simpan/muat** — IndexedDB, 3 slot + simpan otomatis, ekspor/impor JSON, validasi Zod, migrasi skema, penanganan data rusak.
-- **Pengaturan** — volume, sensitivitas, kecepatan gerak, kualitas grafis, skala UI, bahasa (EN sebagian), aksesibilitas (kurangi gerak, kontras tinggi), pemetaan tombol.
+- **Pengaturan** — volume, sensitivitas, kecepatan gerak, kualitas grafis (Rendah/Sedang/Tinggi/Ultra), skala UI, bahasa (EN sebagian), aksesibilitas (kurangi gerak, kontras tinggi), pemetaan tombol.
 - **AI opsional** — dialog pasien, petunjuk tutor, ulasan performa, narasi event melalui proxy server; game sepenuhnya dapat dimainkan tanpa AI.
 - **Audio** — efek suara & musik latar prosedural (Web Audio, placeholder).
 
 ## Teknologi
 
-React 19 · TypeScript · Vite · Three.js · React Three Fiber · Drei · Zustand · Immer · React Router · Tailwind CSS 4 · Zod · idb (IndexedDB) · Vitest · React Testing Library · Playwright. Proxy AI opsional: Node.js + `@anthropic-ai/sdk`.
+React 19 · TypeScript · Vite · Three.js · React Three Fiber · Drei · postprocessing + N8AO (profil Ultra) · Zustand · Immer · React Router · Tailwind CSS 4 · Zod · idb (IndexedDB) · Vitest · React Testing Library · Playwright. Proxy AI opsional: Node.js + `@anthropic-ai/sdk`.
 
 ## Instalasi & menjalankan
 
@@ -52,7 +57,7 @@ npm run typecheck    # tsc
 npm run lint         # ESLint
 npm test             # Vitest: unit, integrasi, komponen, persistensi
 npx playwright install chromium   # sekali saja
-npm run test:e2e     # Playwright end-to-end (menjalankan dev server otomatis)
+npm run test:e2e     # Playwright end-to-end (membangun build produksi lalu vite preview di port 4173)
 npm run check        # typecheck + lint + test + build
 ```
 
@@ -84,7 +89,27 @@ Game adalah situs statis hasil Vite dan memakai `HashRouter`, sehingga tidak mem
 - [GAME_DESIGN.md](GAME_DESIGN.md) — gameplay loop, sistem, ekonomi, mode
 - [TESTING.md](TESTING.md) — cara & hasil pengujian
 - [ART_DIRECTION.md](ART_DIRECTION.md) — arah visual, rencana & hasil peningkatan grafis
+- [ASSET_CREDITS.md](ASSET_CREDITS.md) — sumber, lisensi & modifikasi aset pihak ketiga
 
 ## Aset & lisensi
 
-Seluruh model 3D (arsitektur, perabot, karakter ber-rangka), tekstur PBR prosedural, kemasan produk, teks papan, dan audio dibuat di dalam kode (Three.js, CanvasTexture/DataTexture, Web Audio). Tidak ada aset pihak ketiga. Audio berstatus placeholder. Arah visual & anggaran performa: [ART_DIRECTION.md](ART_DIRECTION.md).
+Aset pihak ketiga hanya yang berlisensi terbuka (MIT/CC0) dan boleh didistribusikan ulang. Daftar lengkap, sumber, dan modifikasinya ada di [ASSET_CREDITS.md](ASSET_CREDITS.md):
+
+| Aset | Sumber | Lisensi |
+|---|---|---|
+| 25 avatar manusia (+6 varian busana berjilbab) + animasi motion capture | Microsoft Rocketbox | MIT |
+| 15 model properti | Poly Haven | CC0 |
+| 12 set tekstur foto PBR | ambientCG | CC0 |
+
+Arsitektur, perabot apotek, kemasan produk, signage, dokumen fiktif, pohon, motor, dan audio (placeholder) dibuat di dalam kode. Bila aset luar gagal dimuat, game memakai versi prosedural sehingga tetap dapat dimainkan.
+
+Pipeline aset dapat diulang. Berkas mentah diunduh dari sumber resmi ke `.asset-cache/` (diabaikan git), lalu dioptimasi ke `public/assets/`:
+
+```bash
+node scripts/assets/textures.mjs     # tekstur foto PBR (ambientCG)
+node scripts/assets/models.mjs       # model properti (Poly Haven)
+node scripts/assets/characters.mjs   # avatar, varian busana & animasi (Rocketbox)
+node scripts/assets/credits.mjs      # menyusun ASSET_CREDITS.md dari manifest
+```
+
+Arah visual, anggaran performa, dan hasil pengukuran: [ART_DIRECTION.md](ART_DIRECTION.md).

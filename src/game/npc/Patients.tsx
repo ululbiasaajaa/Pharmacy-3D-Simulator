@@ -11,14 +11,16 @@ import {
   DOOR_OUTSIDE,
   EMPLOYEE_SERVICE_SPOTS,
   SERVICE_SPOT,
-  STREET_EXIT,
-  STREET_SPAWN,
   checkoutSlot,
   queueSlot,
   seatSlot,
   type Vec2,
 } from '@/game/world/layout';
 import { doorSensor } from './doorSensor';
+import { crowd, vehicles } from './crowd';
+import { crossingClear, entersRoad } from '@/game/world/traffic';
+import { outsideVisible } from '@/game/visual/InteriorCull';
+import { patientRoute } from '@/game/world/district';
 import { audio } from '@/services/audio/audioEngine';
 import type { Patient } from '@/domain/types';
 
@@ -58,7 +60,8 @@ function computeTargets(patients: Patient[], queue: string[], employeeServing: M
         seated = true;
         break;
       default:
-        pos = STREET_EXIT;
+        // Rute keluar mengikuti rute luar pasien (lihat useEffect di PatientNPC).
+        pos = DOOR_OUTSIDE;
         exiting = true;
     }
     out.set(p.id, { pos, exiting, seated });
@@ -74,23 +77,32 @@ const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { pa
   const seatBlend = useRef(0);
   const bar = useRef<THREE.Mesh>(null);
   const path = useRef<Vec2[]>([]);
+  // Rute luar pasien ini (dari gang atau dari halte lewat zebra cross) + pintu luar apotek.
+  const outside = useMemo<Vec2[]>(() => [...patientRoute(id), DOOR_OUTSIDE], [id]);
   const initial = useMemo<Vec2>(() => {
-    // Pasien baru muncul dari jalan; pasien dari data muat langsung di posisi tujuan.
-    return patient.status === 'entering' ? STREET_SPAWN : target.pos;
+    // Pasien baru muncul di ujung rutenya; pasien dari data muat langsung di posisi tujuan.
+    return patient.status === 'entering' ? outside[0] : target.pos;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const pos = useRef<Vec2>([...initial]);
+  const crowdKey = `patient-${id}`;
+  useEffect(() => () => void crowd.delete(crowdKey), [crowdKey]);
 
   // Rute dihitung ulang hanya bila tujuan benar-benar berubah (bukan setiap tick state).
   const targetKey = `${target.pos[0]},${target.pos[1]},${target.exiting}`;
   useEffect(() => {
     const [x, z] = pos.current;
     const t = target.pos;
-    const near = (p: Vec2) => Math.hypot(p[0] - x, p[1] - z) < 0.3;
+    const inside = z < 9.6 && Math.abs(x) < 12;
+    // Indeks titik rute luar yang terdekat dengan posisi sekarang.
+    let nearest = 0;
+    outside.forEach((p, i) => {
+      if (Math.hypot(p[0] - x, p[1] - z) < Math.hypot(outside[nearest][0] - x, outside[nearest][1] - z)) nearest = i;
+    });
     if (target.exiting) {
-      path.current = z < 9.6 ? [DOOR_INSIDE, DOOR_OUTSIDE, STREET_EXIT] : near(DOOR_OUTSIDE) || z > 11 ? [STREET_EXIT] : [DOOR_OUTSIDE, STREET_EXIT];
-    } else if (z > 9.6) {
-      path.current = near(DOOR_OUTSIDE) ? [DOOR_INSIDE, t] : [DOOR_OUTSIDE, DOOR_INSIDE, t];
+      path.current = inside ? [DOOR_INSIDE, ...[...outside].reverse()] : outside.slice(0, nearest + 1).reverse();
+    } else if (!inside) {
+      path.current = [...outside.slice(nearest + 1), DOOR_INSIDE, t];
     } else {
       path.current = [t];
     }
@@ -105,16 +117,20 @@ const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { pa
   const ratio = patient.maxPatience ? patient.patience / patient.maxPatience : 1;
   const status = patient.status;
 
-  useFrame((_, dt) => {
+  useFrame(({ camera }, dt) => {
     const g = group.current;
     if (!g) return;
     const next = path.current[0];
     let moving = false;
-    if (next) {
+    // Sebelum melangkah ke zebra cross: tunggu kendaraan yang masih melaju (kendaraan berhenti untuk penyeberang).
+    const waitCross = !!next && entersRoad(pos.current, next) && !crossingClear([...vehicles.entries()].map(([id, v]) => ({ id, ...v })));
+    if (next && !waitCross) {
       const dx = next[0] - pos.current[0];
       const dz = next[1] - pos.current[1];
       const dist = Math.hypot(dx, dz);
-      const step = 1.7 * speedMult * dt;
+      // Di luar gedung pasien berjalan lebih sigap (rute luar lebih panjang daripada di dalam).
+      const outdoors = pos.current[1] > 9.6 || Math.abs(pos.current[0]) > 12;
+      const step = (outdoors ? 2.0 : 1.7) * speedMult * dt;
       if (dist <= step || dist < 0.02) {
         pos.current = [next[0], next[1]];
         path.current.shift();
@@ -146,8 +162,13 @@ const PatientNPC = memo(function PatientNPC({ patient, target, speedMult }: { pa
     // Saat duduk, pinggul berada di atas dudukan (titik tujuan = posisi kaki di depan kursi).
     seatBlend.current = THREE.MathUtils.damp(seatBlend.current, seated ? 1 : 0, 8, dt);
     g.position.set(pos.current[0], 0, pos.current[1] - 0.45 * seatBlend.current);
-    g.visible = !(target.exiting && path.current.length === 0);
+    // Pasien di gang tidak dirender saat kamera di dalam apotek (terhalang dinding).
+    const present = !(target.exiting && path.current.length === 0);
+    g.visible = present && outsideVisible(camera.position.x, camera.position.z, pos.current[0], pos.current[1]);
     if (Math.abs(pos.current[0]) < 2 && Math.abs(pos.current[1] - 10) < 2.5) doorSensor.lastNear = performance.now();
+    // Daftarkan posisi saat di luar (zebra cross, jalan) agar kendaraan berhenti.
+    if (present && (pos.current[1] > 10.1 || Math.abs(pos.current[0]) > 12)) crowd.set(crowdKey, { x: pos.current[0], z: pos.current[1] });
+    else crowd.delete(crowdKey);
     if (bar.current) {
       bar.current.scale.x = Math.max(0.02, ratio);
       bar.current.position.x = -(1 - ratio) * 0.25;

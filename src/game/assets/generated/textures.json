@@ -1,0 +1,206 @@
+{
+  "tile": {
+    "source": "ambientCG",
+    "id": "Tiles040",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Tiles040",
+    "meters": 4.8,
+    "use": "Lantai area pelanggan",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 126040,
+      "1024": 493288
+    }
+  },
+  "plaster": {
+    "source": "ambientCG",
+    "id": "Plaster001",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Plaster001",
+    "meters": 2.5,
+    "use": "Dinding interior",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 86804,
+      "1024": 448992
+    }
+  },
+  "ceiling": {
+    "source": "ambientCG",
+    "id": "OfficeCeiling001",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/OfficeCeiling001",
+    "meters": 3.6,
+    "use": "Plafon panel akustik",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": true,
+    "bytes": {
+      "512": 115556,
+      "1024": 584416
+    }
+  },
+  "wood": {
+    "source": "ambientCG",
+    "id": "Wood058",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Wood058",
+    "meters": 1.2,
+    "use": "Panel HPL kayu",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 101834,
+      "1024": 536446
+    }
+  },
+  "brushed": {
+    "source": "ambientCG",
+    "id": "Metal009",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Metal009",
+    "meters": 0.8,
+    "use": "Stainless & aluminium sikat",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": true,
+    "bytes": {
+      "512": 45494,
+      "1024": 174480
+    }
+  },
+  "fabric": {
+    "source": "ambientCG",
+    "id": "Fabric030",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Fabric030",
+    "meters": 0.5,
+    "use": "Kain dudukan kursi",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 301736,
+      "1024": 1534028
+    }
+  },
+  "leather": {
+    "source": "ambientCG",
+    "id": "Leather026",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Leather026",
+    "meters": 0.6,
+    "use": "Kulit sintetis kursi kantor",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 58044,
+      "1024": 376926
+    }
+  },
+  "paving": {
+    "source": "ambientCG",
+    "id": "PavingStones099",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/PavingStones099",
+    "meters": 2.2,
+    "use": "Paving block parkir",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 66510,
+      "1024": 418834
+    }
+  },
+  "tactile": {
+    "source": "ambientCG",
+    "id": "TactilePaving003",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/TactilePaving003",
+    "meters": 1.8,
+    "use": "Ubin pemandu trotoar",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 215788,
+      "1024": 581864
+    }
+  },
+  "asphalt": {
+    "source": "ambientCG",
+    "id": "Asphalt025A",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Asphalt025A",
+    "meters": 4,
+    "use": "Aspal jalan",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 117678,
+      "1024": 764164
+    }
+  },
+  "concrete": {
+    "source": "ambientCG",
+    "id": "Concrete033",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/Concrete033",
+    "meters": 3,
+    "use": "Beton kanstin & teras",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 136382,
+      "1024": 691376
+    }
+  },
+  "facade": {
+    "source": "ambientCG",
+    "id": "PaintedPlaster017",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/a/PaintedPlaster017",
+    "meters": 3,
+    "use": "Plester fasad ruko",
+    "sizes": [
+      512,
+      1024
+    ],
+    "metal": false,
+    "bytes": {
+      "512": 121428,
+      "1024": 375788
+    }
+  }
+}

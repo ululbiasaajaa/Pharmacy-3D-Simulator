@@ -12,7 +12,16 @@ export default defineConfig({
   optimizeDeps: {
     // Dipra-bundel sejak server dinyalakan: bila ditemukan saat PlayScreen dimuat, Vite me-reload
     // halaman (state permainan hilang tepat setelah tombol Mulai ditekan).
-    include: ['three/examples/jsm/geometries/RoundedBoxGeometry.js', 'three/examples/jsm/utils/BufferGeometryUtils.js'],
+    include: [
+      'three/examples/jsm/geometries/RoundedBoxGeometry.js',
+      'three/examples/jsm/utils/BufferGeometryUtils.js',
+      'three/examples/jsm/utils/SkeletonUtils.js',
+      'three/examples/jsm/loaders/GLTFLoader.js',
+      'three/examples/jsm/libs/meshopt_decoder.module.js',
+      'postprocessing',
+      '@react-three/postprocessing',
+      'n8ao',
+    ],
   },
   server: {
     port: 5173,
@@ -26,8 +35,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/three')) return 'three';
-          if (id.includes('node_modules/@react-three')) return 'r3f';
+          // Post-processing hanya dipakai profil Ultra (dimuat malas lewat dynamic import) → biarkan
+          // pemecahan otomatis. Grup manual menarik dependensinya (three core) sehingga harus dihindari.
+          if (/node_modules[\\/](postprocessing|n8ao|@react-three[\\/]postprocessing)[\\/]/.test(id)) return undefined;
+          // Pemisah path bisa `/` atau `\` (Windows) → cocokkan keduanya.
+          if (/node_modules[\\/]three[\\/]/.test(id)) return 'three';
+          if (/node_modules[\\/]@react-three[\\/]/.test(id)) return 'r3f';
           return undefined;
         },
       },
@@ -37,6 +50,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs'],
   },
 });

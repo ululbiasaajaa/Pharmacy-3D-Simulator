@@ -37,8 +37,11 @@ function buildFrame(width: number) {
   return b.build();
 }
 
-/** Pintu berengsel yang berayun saat dibuka/ditutup. */
-export function HingedDoor({ id, x, z, width, locked, label }: { id: string; x: number; z: number; width: number; locked?: boolean; label?: string }) {
+/**
+ * Pintu berengsel yang berayun saat dibuka/ditutup. `rotY` memutar seluruh pintu (π/2 = dinding sejajar sumbu Z;
+ * daun berayun ke +X lokal dunia, mis. ke dalam gudang untuk pintu bongkar muat).
+ */
+export function HingedDoor({ id, x, z, width, locked, label, rotY = 0 }: { id: string; x: number; z: number; width: number; locked?: boolean; label?: string; rotY?: number }) {
   const leaf = useRef<THREE.Group>(null);
   const open = useWorld((s) => !!s.doorsOpen[id]) && !locked;
   const reduce = useSettings((s) => s.settings.reduceMotion);
@@ -52,7 +55,7 @@ export function HingedDoor({ id, x, z, width, locked, label }: { id: string; x: 
   });
   const signBg = locked ? '#9a3412' : '#0e655b';
   return (
-    <group position={[x, 0, z]}>
+    <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
       <Interactable id={id}>
         <group ref={leaf} position={[-width / 2, 0, 0]}>
           <BuiltMeshes parts={leafParts} castShadow />

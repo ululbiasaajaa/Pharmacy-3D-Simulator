@@ -9,6 +9,9 @@ interface WorldStore {
   /** Posisi pemain terkini (untuk minimap/tes & pintu otomatis). */
   player: { x: number; z: number; yaw: number };
   setPlayer: (x: number, z: number, yaw: number) => void;
+  /** Mobil boks PBF sudah berhenti di area bongkar muat (collider aktif hanya saat parkir penuh). */
+  vanParked: boolean;
+  setVanParked: (parked: boolean) => void;
 }
 
 export const useWorld = create<WorldStore>((set) => ({
@@ -17,6 +20,8 @@ export const useWorld = create<WorldStore>((set) => ({
   setDoor: (id, open) => set((s) => (s.doorsOpen[id] === open ? s : { doorsOpen: { ...s.doorsOpen, [id]: open } })),
   player: { x: 0, z: 0, yaw: 0 },
   setPlayer: (x, z, yaw) => set({ player: { x, z, yaw } }),
+  vanParked: false,
+  setVanParked: (vanParked) => set((s) => (s.vanParked === vanParked ? s : { vanParked })),
 }));
 
 /** Registri objek 3D yang dapat dituju raycast (di luar React state demi performa). */

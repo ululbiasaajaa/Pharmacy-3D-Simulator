@@ -61,7 +61,8 @@ export function layoutProducts(levels: ShelfLevel[], entries: { m: Medicine; qty
     .map((e) => ({ ...e, dims: productDims(e.m) }));
   if (!items.length) return [];
   const sumQty = items.reduce((a, it) => a + it.qty, 0);
-  const fullQty = items.reduce((a, it) => a + Math.max(1, it.m.minStock) * 3, 0);
+  // Rak tampak penuh pada stok normal (±2× stok minimum); stok menipis tetap terlihat lebih kosong.
+  const fullQty = items.reduce((a, it) => a + Math.max(1, it.m.minStock) * 2, 0);
   const fill = Math.min(1, sumQty / fullQty);
   const totalWidth = levels.reduce((a, l) => a + (l.x1 - l.x0), 0);
   const avgW = items.reduce((a, it) => a + it.dims.w + GAP, 0) / items.length;

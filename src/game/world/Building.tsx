@@ -3,13 +3,14 @@ import type { Group } from 'three';
 import { occluderObjects } from './worldStore';
 import { useGame } from '@/stores/gameStore';
 import type { MatKey } from './materials';
-import { EXPANSION_DOORS, INTERIOR_DOORS, ROOM_LABELS, WALL_H, WALLS } from './layout';
+import { EXPANSION_DOORS, INTERIOR_DOORS, ROOM_LABELS, SIDE_DOORS, WALL_H, WALLS } from './layout';
 import { Facade, InteriorDetails } from './Architecture';
 import { Exterior } from './Exterior';
 import { useIsNight } from '@/game/visual/useIsNight';
 import { GeoBuilder, floorQuad, meterBox } from '@/game/visual/geometry';
 import { BuiltMeshes } from '@/game/visual/Built';
 import { HingedDoor } from '@/game/objects/Door';
+import { InteriorCull } from '@/game/visual/InteriorCull';
 import type { RoomId } from '@/domain/types';
 
 /** Dinding dalam & luar (kecuali sisi etalase) digabung per material — UV berskala meter. */
@@ -69,10 +70,16 @@ export function Building({ shadows }: { shadows: boolean }) {
         <BuiltMeshes parts={walls} castShadow={shadows} receiveShadow={shadows} />
       </group>
       <Facade pharmacyName={name} night={night} />
-      <InteriorDetails unlocked={unlocked} warm={decor >= 3} />
+      <InteriorCull>
+        <InteriorDetails unlocked={unlocked} warm={decor >= 3} />
+      </InteriorCull>
 
       {INTERIOR_DOORS.map((d) => (
         <HingedDoor key={d.id} id={d.id} x={d.x} z={d.z} width={d.width} label={d.id === 'door-storage' ? 'GUDANG' : d.id === 'door-lab' ? 'LAB RACIK' : 'ADMINISTRASI'} />
+      ))}
+      {/* Pintu samping gudang ke gang bongkar muat (dinding x = −12, daun berayun ke dalam gudang). */}
+      {SIDE_DOORS.map((d) => (
+        <HingedDoor key={d.id} id={d.id} x={d.x} z={d.z} width={d.width} rotY={Math.PI / 2} label="BONGKAR MUAT" />
       ))}
       {EXPANSION_DOORS.map((d) => {
         const isUnlocked = !!d.room && unlocked.includes(d.room);

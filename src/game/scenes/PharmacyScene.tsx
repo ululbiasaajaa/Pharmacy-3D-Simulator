@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react';
+import { Suspense, lazy, useEffect, useLayoutEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { useUi } from '@/stores/uiStore';
 import * as THREE from 'three';
@@ -12,7 +12,12 @@ import { DaylightDriver, SceneEnvironment, SceneLights, SkyDome } from '@/game/v
 import { useVisualProfile, type VisualProfile } from '@/game/visual/quality';
 import { FloorAO } from '@/game/visual/FloorAO';
 import { SunPatches } from '@/game/visual/SunPatches';
+import { CornerAO } from '@/game/visual/CornerAO';
+import { InteriorCull } from '@/game/visual/InteriorCull';
 import { configureMaterials } from '@/game/world/materials';
+
+/** Post-processing hanya untuk profil Ultra → dimuat malas agar profil lain tidak mengunduh library-nya. */
+const PostFX = lazy(() => import('@/game/visual/PostFX').then((m) => ({ default: m.PostFX })));
 
 /** Mendeteksi dukungan WebGL untuk fallback non-3D. */
 export function hasWebGL(): boolean {
@@ -65,12 +70,22 @@ export function PharmacyScene() {
       <SceneLights profile={profile} />
       <Building shadows={profile.sunShadows} />
       <FloorAO pxPerMeter={profile.quality === 'low' ? 14 : 24} />
-      {!profile.sunShadows && <SunPatches />}
-      <Furniture />
+      {/* Isi apotek dilewati saat kamera di gang samping/belakang (tertutup dinding) — lihat InteriorCull. */}
+      <InteriorCull>
+        {/* AO sudut terpanggang; profil Ultra memakai AO layar (N8AO) sebagai gantinya. */}
+        {!profile.postfx.ao && <CornerAO />}
+        {!profile.sunShadows && <SunPatches />}
+        <Furniture />
+        <Employees />
+      </InteriorCull>
       <AutoDoor />
       <Patients />
-      <Employees />
       <PlayerController />
+      {(profile.postfx.ao || profile.postfx.bloom || profile.postfx.smaa) && (
+        <Suspense fallback={null}>
+          <PostFX profile={profile} />
+        </Suspense>
+      )}
     </Canvas>
   );
 }

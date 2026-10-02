@@ -1,9 +1,11 @@
-import { useEffect, useMemo, type MutableRefObject } from 'react';
+import { useEffect, useMemo, useReducer, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BlobShadow } from '@/game/visual/BlobShadow';
 import { useSettings } from '@/stores/settingsStore';
 import { BONE, BONE_DEFS, characterGeometry, characterMaterial, type CharacterStyle } from './characterModel';
+import { hasAvatar, loadAvatar, readyAvatar, type AvatarAsset } from './avatars';
+import { AvatarModel } from './AvatarCharacter';
 
 export type CharacterMode = 'idle' | 'impatient' | 'talk' | 'sit' | 'work' | 'angry';
 
@@ -171,21 +173,60 @@ function applyPose(rig: Rig, P: Pose, dt: number, snap: boolean) {
   root.position.y = damp(root.position.y, P.rootY, snap ? 1000 : 10, dt);
 }
 
+function styleSeed(key: string) {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 9973;
+  return h / 9973;
+}
+
+/** Aset avatar yang sudah siap; memicu pemuatan bila belum. `undefined` selama memuat/gagal. */
+function useAvatarAsset(name: string | undefined): AvatarAsset | undefined {
+  const valid = hasAvatar(name) ? name : undefined;
+  const [, rerender] = useReducer((x: number) => x + 1, 0);
+  useEffect(() => {
+    if (!valid || readyAvatar(valid)) return;
+    let alive = true;
+    loadAvatar(valid).then(
+      () => alive && rerender(),
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+  }, [valid]);
+  return valid ? readyAvatar(valid) : undefined;
+}
+
 /**
- * Karakter skinned prosedural. `style` harus stabil (memo di pemanggil).
- * Satu draw call per karakter; animasi dihitung di CPU (12 tulang).
+ * Karakter: avatar Rocketbox ber-motion capture bila tersedia (ART_DIRECTION.md §5), dengan model
+ * prosedural sebagai fallback selama memuat atau bila aset gagal dimuat. `style` harus stabil.
  */
 export function Character({ style, anim, castShadow = false }: { style: CharacterStyle; anim: MutableRefObject<CharacterAnim>; castShadow?: boolean }) {
+  const asset = useAvatarAsset(style.avatar);
+  if (asset) {
+    // Avatar Rocketbox setinggi 1,72–1,87 m; diskalakan ke postur rata-rata Indonesia dengan variasi
+    // dari gaya karakter (perempuan ±1,55–1,65 m, laki-laki ±1,64–1,76 m).
+    const target = style.height * (asset.female ? 1.64 : 1.66);
+    return (
+      <group>
+        <AvatarModel asset={asset} anim={anim} seed={styleSeed(style.key)} scale={target / asset.height} />
+        <BlobShadow size={0.8} />
+      </group>
+    );
+  }
+  return <ProceduralCharacter style={style} anim={anim} castShadow={castShadow} />;
+}
+
+/**
+ * Karakter skinned prosedural. Satu draw call per karakter; animasi dihitung di CPU (12 tulang).
+ */
+function ProceduralCharacter({ style, anim, castShadow = false }: { style: CharacterStyle; anim: MutableRefObject<CharacterAnim>; castShadow?: boolean }) {
   const rig = useMemo(() => createRig(style), [style]);
   useEffect(() => () => rig.mesh.skeleton.dispose(), [rig]);
   useEffect(() => {
     rig.mesh.castShadow = castShadow;
   }, [rig, castShadow]);
-  const seed = useMemo(() => {
-    let h = 0;
-    for (let i = 0; i < style.key.length; i++) h = (h * 31 + style.key.charCodeAt(i)) % 9973;
-    return h / 9973;
-  }, [style.key]);
+  const seed = useMemo(() => styleSeed(style.key), [style.key]);
   const reduceMotion = useSettings((s) => s.settings.reduceMotion);
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
